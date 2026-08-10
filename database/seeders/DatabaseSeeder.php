@@ -21,43 +21,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $kabupatenKota = [
-            'Kabupaten Bandung',
-            'Kabupaten Bandung Barat',
-            'Kabupaten Bekasi',
-            'Kabupaten Bogor',
-            'Kabupaten Ciamis',
-            'Kabupaten Cianjur',
-            'Kabupaten Cirebon',
-            'Kabupaten Garut',
-            'Kabupaten Indramayu',
-            'Kabupaten Karawang',
-            'Kabupaten Kuningan',
-            'Kabupaten Majalengka',
-            'Kabupaten Pangandaran',
-            'Kabupaten Purwakarta',
-            'Kabupaten Subang',
-            'Kabupaten Sukabumi',
-            'Kabupaten Sumedang',
-            'Kabupaten Tasikmalaya',
-            'Kota Bandung',
-            'Kota Banjar',
-            'Kota Bekasi',
-            'Kota Bogor',
-            'Kota Cimahi',
-            'Kota Cirebon',
-            'Kota Depok',
-            'Kota Sukabumi',
-            'Kota Tasikmalaya',
-        ];
-
-        foreach ($kabupatenKota as $namaKota) {
-            DB::table('master_kab_kota')->insertOrIgnore([
-                'nama_kota' => $namaKota,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        $this->call(MasterKabKotaSeeder::class);
 
         $kbli = [
             ['kode_kbli' => 'A', 'keterangan' => 'Pertanian, Kehutanan dan Perikanan'],

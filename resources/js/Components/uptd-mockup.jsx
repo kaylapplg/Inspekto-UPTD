@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
+const kabKotaOptions = [
+  { value: '1', label: 'Kab. Bekasi' },
+  { value: '2', label: 'Kab. Karawang' },
+  { value: '3', label: 'Kab. Purwakarta' },
+  { value: '4', label: 'Kab. Subang' },
+  { value: '5', label: 'Kota Bekasi' },
+];
+
+const numericValue = (value) => value === '' ? '' : Number(value);
+
 const App = () => {
   // State untuk navigasi sidebar
   const [activeMenu, setActiveMenu] = useState('K1');
@@ -538,12 +548,21 @@ const App = () => {
     return item?.id_kota ?? '-';
   };
 
+  const renderKabKotaOptions = () => (
+    <>
+      <option value="">Pilih Kabupaten/Kota</option>
+      {kabKotaOptions.map((kota) => (
+        <option key={kota.value} value={kota.value}>{kota.label}</option>
+      ))}
+    </>
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: name === 'tahun' || name === 'id_kota' || name === 'jml_perusahaan' || name === 'tk_wni_l' || name === 'tk_wni_p' || name === 'tk_wna_l' || name === 'tk_wna_p' || name === 'kat_mikro' || name === 'kat_kecil' || name === 'kat_menengah' || name === 'kat_besar' || name === 'stat_swasta' || name === 'stat_persero' || name === 'stat_perum' || name === 'stat_bumd' || name === 'stat_yayasan' || name === 'stat_koperasi' || name === 'stat_perseorangan' || name === 'stat_joint' || name === 'hi_pp' || name === 'hi_pkb' || name === 'hi_sp_sb' || name === 'hi_tripartit'
-        ? Number(value)
+        ? numericValue(value)
         : value,
     }));
   };
@@ -805,7 +824,7 @@ const App = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
-              <input name="id_kota" type="number" value={formData.id_kota} onChange={handleChange} placeholder="Contoh: 1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <select name="id_kota" value={formData.id_kota} onChange={handleChange} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{renderKabKotaOptions()}</select>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Total Jumlah Perusahaan</label>
@@ -1356,7 +1375,7 @@ const App = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
-            <input name="id_kota" type="number" value={formDataK3.id_kota} onChange={handleChangeK3} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+            <select name="id_kota" value={formDataK3.id_kota} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select>
           </div>
         </div>
 
@@ -1402,7 +1421,7 @@ const App = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
-            <input name="id_kota" type="number" value={formDataK4.id_kota} onChange={handleChangeK4} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+            <select name="id_kota" value={formDataK4.id_kota} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Jml Perusahaan BPJS</label>
@@ -1509,7 +1528,7 @@ const App = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
-              <input name="id_kota" type="number" value={formDataK6.id_kota} onChange={handleChangeK6} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+              <select name="id_kota" value={formDataK6.id_kota} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Kode KBLI</label>
@@ -1570,7 +1589,7 @@ const App = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
-              <input name="id_kota" type="number" value={formDataK7.id_kota} onChange={handleChangeK7} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+              <select name="id_kota" value={formDataK7.id_kota} onChange={handleChangeK7} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select>
             </div>
           </div>
         </section>
@@ -1780,7 +1799,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label><select name="bulan" value={formDataK8A.bulan} onChange={handleChangeK8A} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label><input name="tahun" type="number" value={formDataK8A.tahun} onChange={handleChangeK8A} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><input name="id_kota" type="number" value={formDataK8A.id_kota} onChange={handleChangeK8A} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><select name="id_kota" value={formDataK8A.id_kota} onChange={handleChangeK8A} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select></div>
         </div>
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1801,7 +1820,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label><select name="bulan" value={formDataK8B.bulan} onChange={handleChangeK8B} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label><input name="tahun" type="number" value={formDataK8B.tahun} onChange={handleChangeK8B} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><input name="id_kota" type="number" value={formDataK8B.id_kota} onChange={handleChangeK8B} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><select name="id_kota" value={formDataK8B.id_kota} onChange={handleChangeK8B} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select></div>
         </div>
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1822,7 +1841,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label><select name="bulan" value={formDataK8C.bulan} onChange={handleChangeK8C} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label><input name="tahun" type="number" value={formDataK8C.tahun} onChange={handleChangeK8C} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><input name="id_kota" type="number" value={formDataK8C.id_kota} onChange={handleChangeK8C} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><select name="id_kota" value={formDataK8C.id_kota} onChange={handleChangeK8C} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select></div>
         </div>
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1843,7 +1862,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label><select name="bulan" value={formDataK9A.bulan} onChange={handleChangeK9A} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label><input name="tahun" type="number" value={formDataK9A.tahun} onChange={handleChangeK9A} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><input name="id_kota" type="number" value={formDataK9A.id_kota} onChange={handleChangeK9A} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><select name="id_kota" value={formDataK9A.id_kota} onChange={handleChangeK9A} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select></div>
         </div>
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1864,7 +1883,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label><select name="bulan" value={formDataK9B.bulan} onChange={handleChangeK9B} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label><input name="tahun" type="number" value={formDataK9B.tahun} onChange={handleChangeK9B} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><input name="id_kota" type="number" value={formDataK9B.id_kota} onChange={handleChangeK9B} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><select name="id_kota" value={formDataK9B.id_kota} onChange={handleChangeK9B} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select></div>
         </div>
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1885,7 +1904,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label><select name="bulan" value={formDataK10.bulan} onChange={handleChangeK10} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label><input name="tahun" type="number" value={formDataK10.tahun} onChange={handleChangeK10} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><input name="id_kota" type="number" value={formDataK10.id_kota} onChange={handleChangeK10} placeholder="1" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label><select name="id_kota" value={formDataK10.id_kota} onChange={handleChangeK10} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select></div>
           <div><label className="block text-sm font-medium text-slate-700 mb-1">No Laporan</label><input name="no_laporan" type="text" value={formDataK10.no_laporan} onChange={handleChangeK10} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" /></div>
         </div>
         <section>
@@ -1909,7 +1928,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK1(prev => ({
       ...prev,
-      [name]: ['tahun', 'pengawas_umum', 'spesialis_1', 'spesialis_2', 'spesialis_3', 'spesialis_4', 'spesialis_5', 'spesialis_6', 'spesialis_7', 'spesialis_8', 'spesialis_9', 'spesialis_10', 'spesialis_11', 'ppns'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'pengawas_umum', 'spesialis_1', 'spesialis_2', 'spesialis_3', 'spesialis_4', 'spesialis_5', 'spesialis_6', 'spesialis_7', 'spesialis_8', 'spesialis_9', 'spesialis_10', 'spesialis_11', 'ppns'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -1917,7 +1936,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK3(prev => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'pesawat_uap', 'bejana_tekan', 'pesawat_angkat', 'pesawat_tenaga', 'listrik', 'eskalator', 'cegah_kebakaran', 'kesehatan_kerja', 'konstruksi', 'lingkungan_kerja', 'bahan_kimia', 'ruang_terbatas', 'sarana_k3', 'personil_k3', 'p2k3', 'perancah'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'pesawat_uap', 'bejana_tekan', 'pesawat_angkat', 'pesawat_tenaga', 'listrik', 'eskalator', 'cegah_kebakaran', 'kesehatan_kerja', 'konstruksi', 'lingkungan_kerja', 'bahan_kimia', 'ruang_terbatas', 'sarana_k3', 'personil_k3', 'p2k3', 'perancah'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -1925,7 +1944,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK4(prev => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'jml_perusahaan_bpjs', 'tk_wni_bpjs', 'tk_wna_bpjs', 'prog_jkn', 'prog_jkk_jkm', 'prog_jht', 'prog_jp', 'prog_jkp'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'jml_perusahaan_bpjs', 'tk_wni_bpjs', 'tk_wna_bpjs', 'prog_jkn', 'prog_jkk_jkm', 'prog_jht', 'prog_jp', 'prog_jkp'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -1933,7 +1952,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK5((prev) => ({
       ...prev,
-      [name]: ['tahun', 'jml_pengawas', 'keg_pertama', 'keg_berkala', 'keg_ulang', 'keg_khusus', 'uji_norma_kerja', 'uji_norma_k3', 'hukum_nota_1', 'hukum_nota_2', 'hukum_lk'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'jml_pengawas', 'keg_pertama', 'keg_berkala', 'keg_ulang', 'keg_khusus', 'uji_norma_kerja', 'uji_norma_k3', 'hukum_nota_1', 'hukum_nota_2', 'hukum_lk'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -1941,7 +1960,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK6((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'jml_pelaksanaan'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'jml_pelaksanaan'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -1949,7 +1968,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK7((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'pesawat_uap', 'bejana_tekan', 'paa', 'ptp', 'listrik', 'elevator', 'petir', 'kebakaran', 'konstruksi', 'klinik', 'lingkungan', 'kimia', 'makan', 'p2k3'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'pesawat_uap', 'bejana_tekan', 'paa', 'ptp', 'listrik', 'elevator', 'petir', 'kebakaran', 'konstruksi', 'klinik', 'lingkungan', 'kimia', 'makan', 'p2k3'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -2095,7 +2114,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK8A((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'jml_kasus', 'keracunan', 'meninggal', 'dugaan_pak', 'pak', 'korban_total', 'tipe_a', 'tipe_b', 'tipe_c', 'tipe_d', 'tipe_e', 'tipe_f', 'tipe_g', 'tipe_h', 'tipe_i', 'tipe_j', 'tipe_k'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'jml_kasus', 'keracunan', 'meninggal', 'dugaan_pak', 'pak', 'korban_total', 'tipe_a', 'tipe_b', 'tipe_c', 'tipe_d', 'tipe_e', 'tipe_f', 'tipe_g', 'tipe_h', 'tipe_i', 'tipe_j', 'tipe_k'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -2103,7 +2122,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK8B((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota'].concat(['sumber_a','sumber_b','sumber_c','sumber_d','sumber_e','sumber_f','sumber_g','sumber_h','sumber_i','sumber_j','sumber_k','sumber_l','sumber_m','sumber_n','sumber_o','sumber_p','sumber_q','sumber_r','sumber_s','sumber_t','sumber_u']).includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota'].concat(['sumber_a','sumber_b','sumber_c','sumber_d','sumber_e','sumber_f','sumber_g','sumber_h','sumber_i','sumber_j','sumber_k','sumber_l','sumber_m','sumber_n','sumber_o','sumber_p','sumber_q','sumber_r','sumber_s','sumber_t','sumber_u']).includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -2111,7 +2130,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK8C((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'akibat_sembuh', 'akibat_stmb', 'akibat_cacat', 'akibat_meninggal', 'santunan_berkala', 'santunan_sekaligus', 'santunan_pendidikan', 'santunan_kembali_kerja', 'kerugian_ekonomi', 'jam_kerja_hilang'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'akibat_sembuh', 'akibat_stmb', 'akibat_cacat', 'akibat_meninggal', 'santunan_berkala', 'santunan_sekaligus', 'santunan_pendidikan', 'santunan_kembali_kerja', 'kerugian_ekonomi', 'jam_kerja_hilang'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -2119,7 +2138,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK9A((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'jml_perusahaan_melanggar', 'jml_di_nota', 'pelanggaran_wlkp', 'pelanggaran_wkwi', 'penggunaan_tka', 'pmi', 'upah_minimum', 'upah_tidak_dibayar', 'upah_lembur', 'kompensasi_pkwt', 'pesangon', 'thr', 'pekerja_anak', 'cuti_tahunan', 'cuti_haid', 'pp_kb', 'pwbd_bpjs_kes', 'pwbd_bpjs_tk', 'pds_tk', 'pds_upah', 'pds_prog', 'prshn_mnggk', 'lain_lain'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'jml_perusahaan_melanggar', 'jml_di_nota', 'pelanggaran_wlkp', 'pelanggaran_wkwi', 'penggunaan_tka', 'pmi', 'upah_minimum', 'upah_tidak_dibayar', 'upah_lembur', 'kompensasi_pkwt', 'pesangon', 'thr', 'pekerja_anak', 'cuti_tahunan', 'cuti_haid', 'pp_kb', 'pwbd_bpjs_kes', 'pwbd_bpjs_tk', 'pds_tk', 'pds_upah', 'pds_prog', 'prshn_mnggk', 'lain_lain'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -2127,7 +2146,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK9B((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'pelanggaran_p2k3', 'ahli_k3', 'personil_k3_lainnya', 'pjk3', 'unit_p3k', 'sarana_makan', 'pengendalian_b3', 'dokter_perusahaan', 'paramedis_perusahaan', 'dokter_pktk', 'riksa_awal', 'riksa_berkala', 'riksa_khusus', 'lainnya'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'pelanggaran_p2k3', 'ahli_k3', 'personil_k3_lainnya', 'pjk3', 'unit_p3k', 'sarana_makan', 'pengendalian_b3', 'dokter_perusahaan', 'paramedis_perusahaan', 'dokter_pktk', 'riksa_awal', 'riksa_berkala', 'riksa_khusus', 'lainnya'].includes(name) ? numericValue(value) : value,
     }));
   };
 
@@ -2135,7 +2154,7 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK10((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'putusan_denda'].includes(name) ? Number(value) : value,
+      [name]: ['tahun', 'id_kota', 'putusan_denda'].includes(name) ? numericValue(value) : value,
     }));
   };
 

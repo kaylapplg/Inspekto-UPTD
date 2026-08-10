@@ -15,8 +15,11 @@ export default function Login({ status, canResetPassword }) {
     }, []);
 
     const submit = (e) => {
-          e.preventDefault();
-               post('/login'); // Kita tembak langsung ke URL /login
+        e.preventDefault();
+
+        post(route('login'), {
+            onFinish: () => reset('password'),
+        });
     };
 
     return (
