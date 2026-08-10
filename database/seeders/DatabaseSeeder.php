@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +16,81 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        $kabupatenKota = [
+            'Kabupaten Bandung',
+            'Kabupaten Bandung Barat',
+            'Kabupaten Bekasi',
+            'Kabupaten Bogor',
+            'Kabupaten Ciamis',
+            'Kabupaten Cianjur',
+            'Kabupaten Cirebon',
+            'Kabupaten Garut',
+            'Kabupaten Indramayu',
+            'Kabupaten Karawang',
+            'Kabupaten Kuningan',
+            'Kabupaten Majalengka',
+            'Kabupaten Pangandaran',
+            'Kabupaten Purwakarta',
+            'Kabupaten Subang',
+            'Kabupaten Sukabumi',
+            'Kabupaten Sumedang',
+            'Kabupaten Tasikmalaya',
+            'Kota Bandung',
+            'Kota Banjar',
+            'Kota Bekasi',
+            'Kota Bogor',
+            'Kota Cimahi',
+            'Kota Cirebon',
+            'Kota Depok',
+            'Kota Sukabumi',
+            'Kota Tasikmalaya',
+        ];
+
+        foreach ($kabupatenKota as $namaKota) {
+            DB::table('master_kab_kota')->insertOrIgnore([
+                'nama_kota' => $namaKota,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $kbli = [
+            ['kode_kbli' => 'A', 'keterangan' => 'Pertanian, Kehutanan dan Perikanan'],
+            ['kode_kbli' => 'B', 'keterangan' => 'Pertambangan dan Penggalian'],
+            ['kode_kbli' => 'C', 'keterangan' => 'Industri Pengolahan'],
+            ['kode_kbli' => 'D', 'keterangan' => 'Pengadaan Listrik dan Gas'],
+            ['kode_kbli' => 'E', 'keterangan' => 'Pengadaan Air; Pengelolaan Sampah, Limbah dan Daur Ulang'],
+            ['kode_kbli' => 'F', 'keterangan' => 'Konstruksi'],
+            ['kode_kbli' => 'G', 'keterangan' => 'Perdagangan Besar dan Eceran; Reparasi dan Perawatan Mobil dan Sepeda Motor'],
+            ['kode_kbli' => 'H', 'keterangan' => 'Transportasi dan Pergudangan'],
+            ['kode_kbli' => 'I', 'keterangan' => 'Penyediaan Akomodasi dan Penyediaan Makan Minum'],
+            ['kode_kbli' => 'J', 'keterangan' => 'Informasi dan Komunikasi'],
+            ['kode_kbli' => 'K', 'keterangan' => 'Aktivitas Keuangan dan Asuransi'],
+            ['kode_kbli' => 'L', 'keterangan' => 'Real Estat'],
+            ['kode_kbli' => 'M', 'keterangan' => 'Aktivitas Profesional, Ilmiah dan Teknis'],
+            ['kode_kbli' => 'N', 'keterangan' => 'Aktivitas Penyewaan, Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan dan Penunjang Usaha Lainnya'],
+            ['kode_kbli' => 'O', 'keterangan' => 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib'],
+            ['kode_kbli' => 'P', 'keterangan' => 'Pendidikan'],
+            ['kode_kbli' => 'Q', 'keterangan' => 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial'],
+            ['kode_kbli' => 'R', 'keterangan' => 'Kesenian, Hiburan dan Rekreasi'],
+            ['kode_kbli' => 'S', 'keterangan' => 'Aktivitas Jasa Lainnya'],
+            ['kode_kbli' => 'T', 'keterangan' => 'Aktivitas Rumah Tangga sebagai Pemberi Kerja; Aktivitas Yang Menghasilkan Barang dan Jasa oleh Rumah Tangga yang Digunakan untuk Memenuhi Kebutuhan Sendiri'],
+            ['kode_kbli' => 'U', 'keterangan' => 'Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya'],
+        ];
+
+        foreach ($kbli as $item) {
+            DB::table('master_kbli')->insertOrIgnore([
+                'kode_kbli' => $item['kode_kbli'],
+                'keterangan' => $item['keterangan'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }
+
