@@ -16,12 +16,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Panggil UserSeeder agar user admin@uptd.com terbuat
+        $this->call([
+            UserSeeder::class,
+            MasterKabKotaSeeder::class,
         ]);
-
-        $this->call(MasterKabKotaSeeder::class);
 
         $kbli = [
             ['kode_kbli' => 'A', 'keterangan' => 'Pertanian, Kehutanan dan Perikanan'],
@@ -57,4 +56,3 @@ class DatabaseSeeder extends Seeder
         }
     }
 }
-
