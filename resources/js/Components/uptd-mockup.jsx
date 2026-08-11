@@ -10,6 +10,67 @@ const kabKotaOptions = [
 
 const numericValue = (value) => value === '' ? '' : Number(value);
 
+const k1JabatanOptions = ['Pertama', 'Muda', 'Madya'];
+const k1NumberFields = [
+  { key: 'pengawas_umum', label: 'Pengawas Umum' },
+  ...Array.from({ length: 11 }, (_, index) => ({
+    key: `spesialis_${index + 1}`,
+    label: `Spesialis ${index + 1}`,
+  })),
+  { key: 'ppns', label: 'PPNS' },
+];
+
+const createK1JabatanValues = () => k1NumberFields.reduce((values, field) => ({
+  ...values,
+  [field.key]: 0,
+}), {});
+
+const createK1JabatanData = () => k1JabatanOptions.reduce((values, jabatan) => ({
+  ...values,
+  [jabatan]: createK1JabatanValues(),
+}), {});
+
+const kbliOptions = [
+  { kode: 'A', keterangan: 'Mesin dan Tanur (mesin pons, mesin pres, gergaji, mesin bor, mesin tenun, dll)' },
+  { kode: 'B', keterangan: 'Penggerak mula dan pompa (motor bakar, pompa angin/ kompresor, pompa air, kipas angin, dll)' },
+  { kode: 'C', keterangan: 'Lift' },
+  { kode: 'D', keterangan: 'Pesawat Angkat' },
+  { kode: 'E', keterangan: 'Conveyor' },
+  { kode: 'F', keterangan: 'Pesawat Angkut' },
+  { kode: 'G', keterangan: 'Alat Transmisi mekanik (rantai, pulley dll)' },
+  { kode: 'H', keterangan: 'Perkakas kerja tangan' },
+  { kode: 'I', keterangan: 'Pesawat Uap dan bejana tekan' },
+  { kode: 'J', keterangan: 'Listrik dan Petir' },
+  { kode: 'K', keterangan: 'Bahan Kimia' },
+  { kode: 'L', keterangan: 'Debu Berbahaya' },
+  { kode: 'M', keterangan: 'Cahaya Radiasi dan bahan radio aktif' },
+  { kode: 'N', keterangan: 'Iklim Kerja (temperatur dan kelembaban udara dll)' },
+  { kode: 'O', keterangan: 'Bahan mudah terbakar dan benda panas (lak. Film, minyak, kertas, kapuk, uap dll)' },
+  { kode: 'P', keterangan: 'Binatang' },
+  { kode: 'Q', keterangan: 'Permukaan Lantai kerja' },
+  { kode: 'R', keterangan: 'Kecelakaan Lalu lintas dalam hubungan kerja' },
+  { kode: 'S', keterangan: 'Getaran dan Bising' },
+  { kode: 'T', keterangan: 'Tekanan Udara' },
+  { kode: 'U', keterangan: 'Lain-lain' },
+];
+
+const k6MenuIds = ['K6', '6A', '6B', '6C', '6D'];
+const k6JenisKegiatanMap = {
+  K6: '6A - Kelembagaan',
+  '6A': '6A - Kelembagaan',
+  '6B': '6B - Personil K3',
+  '6C': '6C - Penghargaan',
+  '6D': '6D - Kasus Kecelakaan',
+};
+
+const createK6KbliData = () => kbliOptions.reduce((values, item) => ({
+  ...values,
+  [item.kode]: {
+    jml_pelaksanaan: 0,
+    keterangan: '',
+  },
+}), {});
+
 const App = () => {
   // State untuk navigasi sidebar
   const [activeMenu, setActiveMenu] = useState('K1');
@@ -42,20 +103,7 @@ const App = () => {
   const [formDataK1, setFormDataK1] = useState({
     bulan: 'Agustus',
     tahun: 2026,
-    jabatan: 'Pertama',
-    pengawas_umum: 0,
-    spesialis_1: 0,
-    spesialis_2: 0,
-    spesialis_3: 0,
-    spesialis_4: 0,
-    spesialis_5: 0,
-    spesialis_6: 0,
-    spesialis_7: 0,
-    spesialis_8: 0,
-    spesialis_9: 0,
-    spesialis_10: 0,
-    spesialis_11: 0,
-    ppns: 0,
+    jabatan: createK1JabatanData(),
   });
 
   const [formDataK3, setFormDataK3] = useState({
@@ -114,10 +162,7 @@ const App = () => {
     bulan: 'Agustus',
     tahun: 2026,
     id_kota: '',
-    kode_kbli: 'A',
-    jenis_kegiatan: 'Pembinaan',
-    jml_pelaksanaan: 0,
-    keterangan: '',
+    data_kbli: createK6KbliData(),
   });
 
   const [formDataK7, setFormDataK7] = useState({
@@ -630,15 +675,9 @@ const App = () => {
                       {menu.subMenus.map((subMenu) => (
                         <li key={subMenu.id}>
                           <button
-                            onClick={() => {
-                              if (menu.id === 'K6') {
-                                setActiveMenu('K6');
-                              } else {
-                                setActiveMenu(subMenu.id);
-                              }
-                            }}
+                            onClick={() => setActiveMenu(subMenu.id)}
                             className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
-                              activeMenu === subMenu.id || (menu.id === 'K6' && activeMenu === 'K6') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                              activeMenu === subMenu.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700 hover:text-white'
                             }`}
                           >
                             {subMenu.label}
@@ -1180,48 +1219,59 @@ const App = () => {
     </div>
   );
 
-  const renderViewDataK6 = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-        <div>
-          <h3 className="font-semibold text-slate-700">Tabel Rekapitulasi Data K6</h3>
-          <p className="text-xs text-slate-500 mt-1">Kegiatan KBLI / Pemetaan Program</p>
+  const renderViewDataK6 = () => {
+    const filteredDataK6 = dataK6.filter((item) => (
+      activeMenu === 'K6' || String(item.jenis_kegiatan ?? '').includes(activeMenu)
+    ));
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <div>
+            <h3 className="font-semibold text-slate-700">Tabel Rekapitulasi Data {getActiveTitle()}</h3>
+            <p className="text-xs text-slate-500 mt-1">Kegiatan KBLI / Pemetaan Program</p>
+          </div>
+          <button className="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition flex items-center gap-2 shadow-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Export Excel
+          </button>
         </div>
-        <button className="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition flex items-center gap-2 shadow-sm">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          Export Excel
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-700 uppercase bg-slate-200">
-            <tr>
-              <th className="px-5 py-4">Bulan</th>
-              <th className="px-5 py-4">Tahun</th>
-              <th className="px-5 py-4">Kabupaten/Kota</th>
-              <th className="px-5 py-4">KBLI</th>
-              <th className="px-5 py-4">Jenis Kegiatan</th>
-              <th className="px-5 py-4 text-center">Jml Pelaksanaan</th>
-              <th className="px-5 py-4">Keterangan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dataK6.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-5 py-3">{item.bulan}</td>
-                <td className="px-5 py-3">{item.tahun}</td>
-                <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-5 py-3 font-medium text-slate-700">{item.kode_kbli ?? item.kbli?.kode_kbli}</td>
-                <td className="px-5 py-3">{item.jenis_kegiatan}</td>
-                <td className="px-5 py-3 text-center font-semibold text-blue-600">{Number(item.jml_pelaksanaan ?? 0)}</td>
-                <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-slate-700 uppercase bg-slate-200">
+              <tr>
+                <th className="px-5 py-4">Bulan</th>
+                <th className="px-5 py-4">Tahun</th>
+                <th className="px-5 py-4">Kabupaten/Kota</th>
+                <th className="px-5 py-4">KBLI</th>
+                <th className="px-5 py-4">Jenis Kegiatan</th>
+                <th className="px-5 py-4 text-center">Jml Pelaksanaan</th>
+                <th className="px-5 py-4">Keterangan</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredDataK6.map((item) => (
+                <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
+                  <td className="px-5 py-3">{item.bulan}</td>
+                  <td className="px-5 py-3">{item.tahun}</td>
+                  <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                  <td className="px-5 py-3 font-medium text-slate-700">{item.kode_kbli ?? item.kbli?.kode_kbli}</td>
+                  <td className="px-5 py-3">{item.jenis_kegiatan}</td>
+                  <td className="px-5 py-3 text-center font-semibold text-blue-600">{Number(item.jml_pelaksanaan ?? 0)}</td>
+                  <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
+                </tr>
+              ))}
+              {filteredDataK6.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="px-5 py-8 text-center text-slate-500">Belum ada data untuk {getActiveTitle()}.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderViewDataK7 = () => (
     <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
@@ -1292,61 +1342,61 @@ const App = () => {
         <h3 className="font-semibold text-slate-700">Form Input Data K1 Baru</h3>
         <p className="text-xs text-slate-500 mt-1">Pengawas & Ketenagakerjaan</p>
       </div>
-      <form className="p-6 space-y-8" onSubmit={handleSubmitK1}>
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label>
-              <select name="bulan" value={formDataK1.bulan} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
-                <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
-                <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
-                <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
-                <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label>
-              <input name="tahun" type="number" value={formDataK1.tahun} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Jabatan</label>
-              <select name="jabatan" value={formDataK1.jabatan} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
-                <option value="Pertama">Pertama</option>
-                <option value="Muda">Muda</option>
-                <option value="Madya">Madya</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Pengawas Umum</label>
-              <input name="pengawas_umum" type="number" value={formDataK1.pengawas_umum} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-            </div>
+      <form className="p-6 space-y-6" onSubmit={handleSubmitK1}>
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label>
+            <select name="bulan" value={formDataK1.bulan} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
+              <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
+              <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
+              <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
+              <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label>
+            <input name="tahun" type="number" value={formDataK1.tahun} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
           </div>
         </section>
 
         <section>
-          <h4 className="text-md font-bold text-slate-800 mb-4 pb-2 border-b">Spesialis K3 (1 sampai 11)</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {['spesialis_1','spesialis_2','spesialis_3','spesialis_4','spesialis_5','spesialis_6','spesialis_7','spesialis_8','spesialis_9','spesialis_10','spesialis_11'].map((key, idx) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Spesialis {idx + 1}</label>
-                <input name={key} type="number" value={formDataK1[key]} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">PPNS</label>
-              <input name="ppns" type="number" value={formDataK1.ppns} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+          <div className="overflow-x-auto w-full pb-4">
+            <div className="border border-slate-200 rounded-lg">
+              <table className="min-w-[1180px] w-full text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left font-semibold border-r border-slate-200">Jabatan</th>
+                    {k1NumberFields.map((field) => (
+                      <th key={field.key} className="px-3 py-3 text-center font-semibold whitespace-nowrap">{field.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {k1JabatanOptions.map((jabatan) => (
+                    <tr key={jabatan} className="hover:bg-slate-50">
+                      <td className="sticky left-0 z-10 bg-white px-4 py-3 font-semibold text-slate-700 border-r border-slate-200">{jabatan}</td>
+                      {k1NumberFields.map((field) => (
+                        <td key={`${jabatan}-${field.key}`} className="px-2 py-3">
+                          <input
+                            type="number"
+                            min="0"
+                            value={formDataK1.jabatan[jabatan][field.key]}
+                            onChange={(e) => handleChangeK1Jabatan(jabatan, field.key, e.target.value)}
+                            className="w-20 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm transition">Simpan Data</button>
+          <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm transition">Simpan Semua Data K1</button>
         </div>
       </form>
     </div>
@@ -1507,59 +1557,79 @@ const App = () => {
   const renderInputFormK6 = () => (
     <div className="bg-white rounded-lg shadow-sm border border-slate-200">
       <div className="p-4 border-b border-slate-200 bg-slate-50">
-        <h3 className="font-semibold text-slate-700">Form Input Data K6 Baru</h3>
+        <h3 className="font-semibold text-slate-700">Form Input Data {getActiveTitle()} Baru</h3>
         <p className="text-xs text-slate-500 mt-1">Kegiatan KBLI</p>
       </div>
-      <form className="p-6 space-y-8" onSubmit={handleSubmitK6}>
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label>
-              <select name="bulan" value={formDataK6.bulan} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
-                <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
-                <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
-                <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
-                <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label>
-              <input name="tahun" type="number" value={formDataK6.tahun} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
-              <select name="id_kota" value={formDataK6.id_kota} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Kode KBLI</label>
-              <select name="kode_kbli" value={formDataK6.kode_kbli} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
-                <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
-              </select>
-            </div>
+      <form className="p-6 space-y-6" onSubmit={handleSubmitK6}>
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Bulan</label>
+            <select name="bulan" value={formDataK6.bulan} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
+              <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
+              <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
+              <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
+              <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
+            </select>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Jenis Kegiatan</label>
-              <select name="jenis_kegiatan" value={formDataK6.jenis_kegiatan} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
-                <option value="Pembinaan">Pembinaan</option>
-                <option value="Pemeriksaan">Pemeriksaan</option>
-                <option value="Pengujian">Pengujian</option>
-                <option value="Penegakan Hukum">Penegakan Hukum</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Jumlah Pelaksanaan</label>
-              <input name="jml_pelaksanaan" type="number" value={formDataK6.jml_pelaksanaan} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-            </div>
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Keterangan</label>
-              <input name="keterangan" type="text" value={formDataK6.keterangan} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tahun</label>
+            <input name="tahun" type="number" value={formDataK6.tahun} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Kabupaten/Kota</label>
+            <select name="id_kota" value={formDataK6.id_kota} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">{renderKabKotaOptions()}</select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Jenis Kegiatan</label>
+            <input type="text" value={k6JenisKegiatanMap[activeMenu] ?? k6JenisKegiatanMap.K6} disabled className="w-full border border-slate-200 bg-slate-100 text-slate-600 rounded-md px-3 py-2 text-sm" />
+          </div>
+        </section>
+
+        <section>
+          <div className="overflow-x-auto w-full pb-4">
+            <div className="border border-slate-200 rounded-lg">
+              <table className="min-w-[980px] w-full text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold w-24">Kode KBLI</th>
+                    <th className="px-4 py-3 text-left font-semibold">Keterangan KBLI</th>
+                    <th className="px-4 py-3 text-center font-semibold w-40">Jml Pelaksanaan</th>
+                    <th className="px-4 py-3 text-left font-semibold w-80">Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {kbliOptions.map((item) => (
+                    <tr key={item.kode} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-semibold text-slate-700">{item.kode}</td>
+                      <td className="px-4 py-3 text-slate-700">{item.keterangan}</td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          value={formDataK6.data_kbli[item.kode].jml_pelaksanaan}
+                          onChange={(e) => handleChangeK6Kbli(item.kode, 'jml_pelaksanaan', e.target.value)}
+                          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={formDataK6.data_kbli[item.kode].keterangan}
+                          onChange={(e) => handleChangeK6Kbli(item.kode, 'keterangan', e.target.value)}
+                          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
+
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm transition">Simpan Data</button>
+          <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm transition">Simpan Semua Data K6</button>
         </div>
       </form>
     </div>
@@ -1928,7 +1998,20 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK1(prev => ({
       ...prev,
-      [name]: ['tahun', 'pengawas_umum', 'spesialis_1', 'spesialis_2', 'spesialis_3', 'spesialis_4', 'spesialis_5', 'spesialis_6', 'spesialis_7', 'spesialis_8', 'spesialis_9', 'spesialis_10', 'spesialis_11', 'ppns'].includes(name) ? numericValue(value) : value,
+      [name]: name === 'tahun' ? numericValue(value) : value,
+    }));
+  };
+
+  const handleChangeK1Jabatan = (jabatan, field, value) => {
+    setFormDataK1((prev) => ({
+      ...prev,
+      jabatan: {
+        ...prev.jabatan,
+        [jabatan]: {
+          ...prev.jabatan[jabatan],
+          [field]: numericValue(value),
+        },
+      },
     }));
   };
 
@@ -1960,7 +2043,20 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK6((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'jml_pelaksanaan'].includes(name) ? numericValue(value) : value,
+      [name]: ['tahun', 'id_kota'].includes(name) ? numericValue(value) : value,
+    }));
+  };
+
+  const handleChangeK6Kbli = (kode, field, value) => {
+    setFormDataK6((prev) => ({
+      ...prev,
+      data_kbli: {
+        ...prev.data_kbli,
+        [kode]: {
+          ...prev.data_kbli[kode],
+          [field]: field === 'jml_pelaksanaan' ? numericValue(value) : value,
+        },
+      },
     }));
   };
 
@@ -1974,11 +2070,18 @@ const App = () => {
 
   const handleSubmitK1 = async (e) => {
     e.preventDefault();
+    const payload = k1JabatanOptions.map((jabatan) => ({
+      bulan: formDataK1.bulan,
+      tahun: formDataK1.tahun,
+      jabatan,
+      ...formDataK1.jabatan[jabatan],
+    }));
+
     try {
       const response = await fetch('http://127.0.0.1:8000/api/k1-pengawas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(formDataK1),
+        body: JSON.stringify(payload),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -2066,11 +2169,26 @@ const App = () => {
 
   const handleSubmitK6 = async (e) => {
     e.preventDefault();
+    const jenisKegiatan = k6JenisKegiatanMap[activeMenu] ?? k6JenisKegiatanMap.K6;
+    const payload = kbliOptions
+      .filter((item) => {
+        const kbliData = formDataK6.data_kbli[item.kode];
+        return Number(kbliData.jml_pelaksanaan ?? 0) > 0 || String(kbliData.keterangan ?? '').trim() !== '';
+      })
+      .map((item) => ({
+        bulan: formDataK6.bulan,
+        tahun: formDataK6.tahun,
+        id_kota: formDataK6.id_kota,
+        kode_kbli: item.kode,
+        jenis_kegiatan: jenisKegiatan,
+        ...formDataK6.data_kbli[item.kode],
+      }));
+
     try {
       const response = await fetch('http://127.0.0.1:8000/api/k6-kegiatan-kbli', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(formDataK6),
+        body: JSON.stringify(payload),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -2324,7 +2442,7 @@ const App = () => {
       {renderSidebar()}
 
       {/* Main Content (Offset by Sidebar width) */}
-      <main className="ml-64 flex-1 flex flex-col">
+      <main className="ml-64 flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b border-slate-200 h-16 flex items-center px-8 justify-between z-10 sticky top-0">
           <h2 className="text-xl font-semibold text-slate-800">
@@ -2342,7 +2460,7 @@ const App = () => {
         {/* Content Area */}
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
-            {activeMenu === 'K1' || activeMenu === 'K2' || activeMenu === 'K3' || activeMenu === 'K4' || activeMenu === 'K5' || activeMenu === 'K6' || activeMenu === 'K7' || activeMenu === '8A' || activeMenu === '8B' || activeMenu === '8C' || activeMenu === '9A' || activeMenu === '9B' || activeMenu === 'K10' ? (
+            {activeMenu === 'K1' || activeMenu === 'K2' || activeMenu === 'K3' || activeMenu === 'K4' || activeMenu === 'K5' || k6MenuIds.includes(activeMenu) || activeMenu === 'K7' || activeMenu === '8A' || activeMenu === '8B' || activeMenu === '8C' || activeMenu === '9A' || activeMenu === '9B' || activeMenu === 'K10' ? (
               <div>
                 {/* Tab Navigation */}
                 <div className="flex space-x-1 mb-6 border-b border-slate-300">
@@ -2381,7 +2499,7 @@ const App = () => {
                   activeMenu === 'K3' ? renderViewDataK3() :
                   activeMenu === 'K4' ? renderViewDataK4() :
                   activeMenu === 'K5' ? renderViewDataK5() :
-                  activeMenu === 'K6' ? renderViewDataK6() :
+                  k6MenuIds.includes(activeMenu) ? renderViewDataK6() :
                   activeMenu === 'K7' ? renderViewDataK7() :
                   activeMenu === '8A' ? renderViewDataK8A() :
                   activeMenu === '8B' ? renderViewDataK8B() :
@@ -2396,7 +2514,7 @@ const App = () => {
                   activeMenu === 'K3' ? renderInputFormK3() :
                   activeMenu === 'K4' ? renderInputFormK4() :
                   activeMenu === 'K5' ? renderInputFormK5() :
-                  activeMenu === 'K6' ? renderInputFormK6() :
+                  k6MenuIds.includes(activeMenu) ? renderInputFormK6() :
                   activeMenu === 'K7' ? renderInputFormK7() :
                   activeMenu === '8A' ? renderInputFormK8A() :
                   activeMenu === '8B' ? renderInputFormK8B() :
