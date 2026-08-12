@@ -65,10 +65,7 @@ const k6JenisKegiatanMap = {
 
 const createK6KbliData = () => kbliOptions.reduce((values, item) => ({
   ...values,
-  [item.kode]: {
-    jml_pelaksanaan: 0,
-    keterangan: '',
-  },
+  [item.kode]: 0,
 }), {});
 
 const App = () => {
@@ -162,6 +159,8 @@ const App = () => {
     bulan: 'Agustus',
     tahun: 2026,
     id_kota: '',
+    jml_pelaksanaan_global: 0,
+    keterangan_global: '',
     data_kbli: createK6KbliData(),
   });
 
@@ -1588,13 +1587,12 @@ const App = () => {
         <section>
           <div className="overflow-x-auto w-full pb-4">
             <div className="border border-slate-200 rounded-lg">
-              <table className="min-w-[980px] w-full text-sm">
+              <table className="min-w-[720px] w-full text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold w-24">Kode KBLI</th>
                     <th className="px-4 py-3 text-left font-semibold">Keterangan KBLI</th>
-                    <th className="px-4 py-3 text-center font-semibold w-40">Jml Pelaksanaan</th>
-                    <th className="px-4 py-3 text-left font-semibold w-80">Keterangan</th>
+                    <th className="px-4 py-3 text-center font-semibold w-40">Nilai</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1606,17 +1604,9 @@ const App = () => {
                         <input
                           type="number"
                           min="0"
-                          value={formDataK6.data_kbli[item.kode].jml_pelaksanaan}
-                          onChange={(e) => handleChangeK6Kbli(item.kode, 'jml_pelaksanaan', e.target.value)}
+                          value={formDataK6.data_kbli[item.kode]}
+                          onChange={(e) => handleChangeK6Kbli(item.kode, e.target.value)}
                           className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={formDataK6.data_kbli[item.kode].keterangan}
-                          onChange={(e) => handleChangeK6Kbli(item.kode, 'keterangan', e.target.value)}
-                          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </td>
                     </tr>
@@ -1624,6 +1614,30 @@ const App = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Jumlah Pelaksanaan Total</label>
+            <input
+              name="jml_pelaksanaan_global"
+              type="number"
+              min="0"
+              value={formDataK6.jml_pelaksanaan_global}
+              onChange={handleChangeK6}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Keterangan Laporan</label>
+            <textarea
+              name="keterangan_global"
+              rows="3"
+              value={formDataK6.keterangan_global}
+              onChange={handleChangeK6}
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </section>
 
@@ -2043,19 +2057,16 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK6((prev) => ({
       ...prev,
-      [name]: ['tahun', 'id_kota'].includes(name) ? numericValue(value) : value,
+      [name]: ['tahun', 'id_kota', 'jml_pelaksanaan_global'].includes(name) ? numericValue(value) : value,
     }));
   };
 
-  const handleChangeK6Kbli = (kode, field, value) => {
+  const handleChangeK6Kbli = (kode, value) => {
     setFormDataK6((prev) => ({
       ...prev,
       data_kbli: {
         ...prev.data_kbli,
-        [kode]: {
-          ...prev.data_kbli[kode],
-          [field]: field === 'jml_pelaksanaan' ? numericValue(value) : value,
-        },
+        [kode]: numericValue(value),
       },
     }));
   };
@@ -2170,18 +2181,17 @@ const App = () => {
   const handleSubmitK6 = async (e) => {
     e.preventDefault();
     const jenisKegiatan = k6JenisKegiatanMap[activeMenu] ?? k6JenisKegiatanMap.K6;
-    const payload = kbliOptions
-      .filter((item) => {
-        const kbliData = formDataK6.data_kbli[item.kode];
-        return Number(kbliData.jml_pelaksanaan ?? 0) > 0 || String(kbliData.keterangan ?? '').trim() !== '';
-      })
-      .map((item) => ({
+    const payload = Object.entries(formDataK6.data_kbli)
+      .filter(([, nilai]) => Number(nilai ?? 0) > 0)
+      .map(([kodeKbli, nilai]) => ({
         bulan: formDataK6.bulan,
         tahun: formDataK6.tahun,
         id_kota: formDataK6.id_kota,
-        kode_kbli: item.kode,
+        kode_kbli: kodeKbli,
         jenis_kegiatan: jenisKegiatan,
-        ...formDataK6.data_kbli[item.kode],
+        nilai: Number(nilai),
+        jml_pelaksanaan: formDataK6.jml_pelaksanaan_global,
+        keterangan: formDataK6.keterangan_global,
       }));
 
     try {

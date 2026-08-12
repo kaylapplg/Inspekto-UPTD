@@ -33,7 +33,8 @@ class K6KegiatanKbliController extends Controller
             '*.id_kota' => 'required|exists:master_kab_kota,id',
             '*.kode_kbli' => 'required|exists:master_kbli,kode_kbli',
             '*.jenis_kegiatan' => $jenisKegiatanRule,
-            '*.jml_pelaksanaan' => 'sometimes|integer|min:0',
+            '*.nilai' => 'required|integer|min:1',
+            '*.jml_pelaksanaan' => 'required|integer|min:0',
             '*.keterangan' => 'sometimes|nullable|string',
         ] : [
             'bulan' => 'required|string|max:20',
@@ -41,7 +42,8 @@ class K6KegiatanKbliController extends Controller
             'id_kota' => 'required|exists:master_kab_kota,id',
             'kode_kbli' => 'required|exists:master_kbli,kode_kbli',
             'jenis_kegiatan' => $jenisKegiatanRule,
-            'jml_pelaksanaan' => 'sometimes|integer|min:0',
+            'nilai' => 'required|integer|min:1',
+            'jml_pelaksanaan' => 'required|integer|min:0',
             'keterangan' => 'sometimes|nullable|string',
         ]);
 
@@ -89,6 +91,7 @@ class K6KegiatanKbliController extends Controller
             'id_kota' => 'sometimes|required|exists:master_kab_kota,id',
             'kode_kbli' => 'sometimes|required|exists:master_kbli,kode_kbli',
             'jenis_kegiatan' => $jenisKegiatanRule,
+            'nilai' => 'sometimes|required|integer|min:1',
             'jml_pelaksanaan' => 'sometimes|integer|min:0',
             'keterangan' => 'sometimes|nullable|string',
         ]);
