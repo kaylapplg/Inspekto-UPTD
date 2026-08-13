@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Halaman awal langsung diarahkan ke login
-Route::get('/', function () {
+Route::get('/', function () { 
     return redirect()->route('login');
 });
 
