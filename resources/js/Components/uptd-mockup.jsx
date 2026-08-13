@@ -1414,78 +1414,154 @@ const App = () => {
     </div>
   );
 
-  const renderViewDataK1 = () => (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
-      <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
-        <div>
-          <h3 className="font-semibold text-slate-800">Tabel Rekapitulasi Data K1</h3>
-          <p className="text-xs text-slate-500 mt-1">Data Jabatan, Pengawas Umum, Spesialis K3 & PPNS</p>
+  const renderViewDataK1 = () => {
+    // 1. Kelompokkan dataK1 berdasarkan bulan & tahun yang sama
+    const groupedK1 = dataK1.reduce((groups, item) => {
+      const key = `${item.bulan}-${item.tahun}`;
+
+      if (!groups[key]) {
+        groups[key] = {
+          key,
+          bulan: item.bulan,
+          tahun: item.tahun,
+          jabatan: {}, // { Pertama: item, Muda: item, Madya: item }
+        };
+      }
+
+      groups[key].jabatan[item.jabatan] = item;
+
+      return groups;
+    }, {});
+
+    const groupedK1List = Object.values(groupedK1);
+
+    // Helper untuk menjumlahkan sebuah field numerik dari ke-3 jabatan dalam satu grup
+    const sumJabatanField = (group, field) => k1JabatanOptions.reduce(
+      (total, jabatan) => total + Number(group.jabatan[jabatan]?.[field] ?? 0),
+      0
+    );
+
+    const deleteK1Group = async (group) => {
+      const name = `${group.bulan} ${group.tahun}`;
+      const items = Object.values(group.jabatan).filter(Boolean);
+
+      if (!items.length) return;
+
+      if (window.confirm(`Apakah Anda yakin ingin menghapus ${name}?`)) {
+        const responses = await Promise.all(items.map((item) => (
+          fetch(`http://127.0.0.1:8000/api/k1-pengawas/${item.id}`, { method: 'DELETE' })
+        )));
+
+        if (responses.every((response) => response.ok)) {
+          fetchK1();
+        }
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
+          <div>
+            <h3 className="font-semibold text-slate-800">Tabel Rekapitulasi Data K1</h3>
+            <p className="text-xs text-slate-500 mt-1">Rekap per Bulan &mdash; Gabungan Jabatan Pertama, Muda &amp; Madya</p>
+          </div>
+          <button className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 active:scale-[0.98]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Export Excel
+          </button>
         </div>
-        <button className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 active:scale-[0.98]">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          Export Excel
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-[11px] text-slate-500 uppercase tracking-wide bg-slate-50 border-b-2 border-slate-100 font-semibold">
-            <tr>
-              <th className="px-5 py-4">Bulan</th>
-              <th className="px-5 py-4">Tahun</th>
-              <th className="px-5 py-4">Jabatan</th>
-              <th className="px-5 py-4 text-center">Pengawas Umum</th>
-              <th className="px-5 py-4 text-center">PPNS</th>
-              <th className="px-5 py-4 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dataK1.map((item) => {
-              const isExpanded = expandedRow === `k1-${item.id}`;
-              return (
-                <React.Fragment key={`k1-${item.id}`}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
-                    <td className="px-5 py-3">{item.bulan}</td>
-                    <td className="px-5 py-3">{item.tahun}</td>
-                    <td className="px-5 py-3 font-medium text-slate-800">{item.jabatan}</td>
-                    <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.pengawas_umum ?? 0).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.ppns ?? 0).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => toggleRow(`k1-${item.id}`)} className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}>
-                          {isExpanded ? 'Tutup' : 'Detail'}
-                        </button>
-                        {renderRowActions(item, 'k1-pengawas', fetchK1, item.jabatan)}
-                      </div>
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan="6" className="p-0 border-b border-slate-300">
-                        <div className="bg-slate-100 p-6 shadow-inner">
-                          <h4 className="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-300">Rincian Spesialis K3 (1 sampai 11)</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {[
-                              'spesialis_1', 'spesialis_2', 'spesialis_3', 'spesialis_4', 'spesialis_5', 'spesialis_6',
-                              'spesialis_7', 'spesialis_8', 'spesialis_9', 'spesialis_10', 'spesialis_11'
-                            ].map((key, idx) => (
-                              <div key={key} className="bg-white p-3 rounded-md shadow-sm border border-slate-200 flex justify-between items-center">
-                                <span className="text-xs text-slate-500 uppercase">Spesialis {idx + 1}</span>
-                                <span className="font-bold text-slate-800">{Number(item[key] ?? 0)}</span>
-                              </div>
-                            ))}
-                          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-[11px] text-slate-500 uppercase tracking-wide bg-slate-50 border-b-2 border-slate-100 font-semibold">
+              <tr>
+                <th className="px-5 py-4">Bulan</th>
+                <th className="px-5 py-4">Tahun</th>
+                <th className="px-5 py-4 text-center">Total Pengawas Umum</th>
+                <th className="px-5 py-4 text-center">Total PPNS</th>
+                <th className="px-5 py-4 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupedK1List.map((group) => {
+                const isExpanded = expandedRow === `k1-${group.key}`;
+                const totalPengawasUmum = sumJabatanField(group, 'pengawas_umum');
+                const totalPpns = sumJabatanField(group, 'ppns');
+
+                return (
+                  <React.Fragment key={`k1-${group.key}`}>
+                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                      <td className="px-5 py-3 font-medium text-slate-800">{group.bulan}</td>
+                      <td className="px-5 py-3">{group.tahun}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-sky-600">{totalPengawasUmum.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-purple-600">{totalPpns.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => toggleRow(`k1-${group.key}`)} className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}>
+                            {isExpanded ? 'Tutup' : 'Detail'}
+                          </button>
+                          <button onClick={() => deleteK1Group(group)} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                         </div>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan="5" className="p-0 border-b border-slate-300">
+                          <div className="bg-slate-100 p-6 shadow-inner">
+                            <h4 className="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-300">
+                              Rincian per Jabatan &mdash; {group.bulan} {group.tahun}
+                            </h4>
+                            <div className="overflow-x-auto bg-white rounded-lg border border-slate-200 shadow-sm">
+                              <table className="w-full text-sm text-left">
+                                <thead className="text-[11px] text-slate-500 uppercase tracking-wide bg-slate-50 border-b border-slate-200 font-semibold">
+                                  <tr>
+                                    <th className="px-4 py-3 sticky left-0 bg-slate-50">Rincian</th>
+                                    {k1JabatanOptions.map((jabatan) => {
+                                      const jabatanItem = group.jabatan[jabatan];
+                                      return (
+                                        <th key={jabatan} className="px-4 py-3 text-center min-w-[150px]">
+                                          <div className="flex items-center justify-center gap-2">
+                                            <span>{jabatan}</span>
+                                            {jabatanItem ? (
+                                              <button onClick={() => openEditPage(jabatanItem, 'k1-pengawas', fetchK1, `${jabatan} - ${group.bulan} ${group.tahun}`)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                            ) : (
+                                              <span className="text-slate-300 normal-case">Tidak ada data</span>
+                                            )}
+                                          </div>
+                                        </th>
+                                      );
+                                    })}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {k1NumberFields.map((field, idx) => (
+                                    <tr key={field.key} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
+                                      <td className="px-4 py-2.5 sticky left-0 font-medium text-slate-600 bg-inherit">{field.label}</td>
+                                      {k1JabatanOptions.map((jabatan) => {
+                                        const jabatanItem = group.jabatan[jabatan];
+                                        return (
+                                          <td key={jabatan} className="px-4 py-2.5 text-center font-semibold text-slate-800">
+                                            {jabatanItem ? Number(jabatanItem[field.key] ?? 0).toLocaleString() : '-'}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderViewDataK3 = () => (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
