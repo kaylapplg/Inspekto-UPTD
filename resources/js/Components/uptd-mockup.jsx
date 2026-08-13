@@ -99,6 +99,8 @@ const App = () => {
     password_confirmation: '',
   });
   const [passwordError, setPasswordError] = useState('');
+  const [editData, setEditData] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   const [dataK1, setDataK1] = useState([]);
   const [dataK2, setDataK2] = useState([]);
@@ -594,6 +596,7 @@ const App = () => {
 
   const getActiveTitle = () => {
     if (activeMenu === 'PROFILE') return 'Profil Saya';
+    if (activeMenu === 'EDIT') return 'Edit Data';
 
     for (const menu of menuItems) {
       if (menu.id === activeMenu) return menu.label;
@@ -610,6 +613,80 @@ const App = () => {
     if (item?.master_kab_kota?.nama_kota) return item.master_kab_kota.nama_kota;
     return item?.id_kota ?? '-';
   };
+
+  const getDeleteName = (item) => (
+    item?.jabatan || item?.jabatan_pengawas || item?.no_laporan || getKotaName(item)
+  );
+
+  const del = async (id, api, cb, name) => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus ${name}?`)) {
+      const r = await fetch(`http://127.0.0.1:8000/api/${api}/${id}`, { method: 'DELETE' });
+      if (r.ok) cb();
+    }
+  };
+
+  const openEditPage = (item, api, cb, name) => {
+    if (activeMenu !== 'EDIT') {
+      setLastReportMenu(activeMenu);
+    }
+
+    setEditData({ id: item.id, api, cb, name });
+    setEditForm(Object.entries(item).reduce((values, [key, value]) => {
+      if (['id', 'created_at', 'updated_at', 'kota', 'master_kab_kota', 'kbli'].includes(key)) {
+        return values;
+      }
+
+      if (value === null || typeof value !== 'object') {
+        values[key] = value ?? '';
+      }
+
+      return values;
+    }, {}));
+    setActiveMenu('EDIT');
+  };
+
+  const handleEditChange = (event) => {
+    const { name, value, type } = event.target;
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: type === 'number' ? numericValue(value) : value,
+    }));
+  };
+
+  const saveEdit = async (event) => {
+    event.preventDefault();
+
+    if (!editData) return;
+
+    const response = await fetch(`http://127.0.0.1:8000/api/${editData.api}/${editData.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(editForm),
+    });
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      console.error(result);
+      alert('Gagal menyimpan perubahan');
+      return;
+    }
+
+    alert('Perubahan berhasil disimpan');
+    editData.cb();
+    setEditData(null);
+    setEditForm({});
+    setActiveMenu(lastReportMenu || 'K1');
+  };
+
+  const renderRowActions = (item, api, cb, name = getDeleteName(item)) => (
+    <div className="flex items-center justify-center gap-2">
+      <button onClick={() => openEditPage(item, api, cb, name)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+      <button onClick={() => del(item.id, api, cb, name)} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+    </div>
+  );
 
   const goToMenu = (menuId) => {
     setActiveMenu(menuId);
@@ -844,6 +921,67 @@ const App = () => {
     </aside>
   );
 
+  const renderEditPage = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
+      <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/60">
+        <h3 className="text-lg font-bold text-slate-800">Edit Data</h3>
+        <p className="text-sm text-slate-500 mt-1">Ubah data {editData?.name ?? ''}, lalu simpan perubahan.</p>
+      </div>
+
+      <form onSubmit={saveEdit} className="p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(editForm).map(([key, value]) => {
+            const isLongText = String(value ?? '').length > 80 || ['keterangan', 'dugaan_pelanggaran', 'proses'].includes(key);
+            const isNumber = typeof value === 'number' || ['tahun', 'id_kota', 'nilai'].includes(key) || key.startsWith('spesialis_') || /^(jml_|tk_|kat_|stat_|hi_|prog_|keg_|uji_|hukum_|pesawat_|bejana_|sumber_|akibat_|santunan_|pelanggaran_|putusan_|korban_|tipe_|dokter_|paramedis_|riksa_|lainnya|ppns|paa|ptp|listrik|elevator|petir|kebakaran|konstruksi|klinik|lingkungan|kimia|makan|p2k3|keracunan|meninggal|pak|ahli_k3|pjk3|pmi|thr|pesangon)/.test(key);
+
+            return (
+              <div key={key} className={isLongText ? 'md:col-span-2 lg:col-span-3' : ''}>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{key.replace(/_/g, ' ')}</label>
+                {isLongText ? (
+                  <textarea
+                    name={key}
+                    value={value}
+                    onChange={handleEditChange}
+                    rows="3"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow"
+                  />
+                ) : (
+                  <input
+                    name={key}
+                    type={isNumber ? 'number' : 'text'}
+                    value={value}
+                    onChange={handleEditChange}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <button
+            type="button"
+            onClick={() => {
+              setEditData(null);
+              setEditForm({});
+              setActiveMenu(lastReportMenu || 'K1');
+            }}
+            className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition"
+          >
+            Kembali
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+          >
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+
   const renderProfilePage = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
@@ -1039,12 +1177,7 @@ const App = () => {
                           {isExpanded ? 'Tutup' : 'Detail'}
                           <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <button className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        </button>
-                        <button className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
+                        {renderRowActions(item, 'k2-objek-pengawasan', fetchK2, getKotaName(item))}
                       </div>
                     </td>
                   </tr>
@@ -1321,8 +1454,7 @@ const App = () => {
                         <button onClick={() => toggleRow(`k1-${item.id}`)} className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}>
                           {isExpanded ? 'Tutup' : 'Detail'}
                         </button>
-                        <button className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                        <button className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        {renderRowActions(item, 'k1-pengawas', fetchK1, item.jabatan)}
                       </div>
                     </td>
                   </tr>
@@ -1389,8 +1521,7 @@ const App = () => {
                 <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.bejana_tekan ?? 0)}</td>
                 <td className="px-5 py-3 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    <button className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                    <button className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    {renderRowActions(item, 'k3-objek-k3', fetchK3, getKotaName(item))}
                   </div>
                 </td>
               </tr>
@@ -1435,8 +1566,7 @@ const App = () => {
                 <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.tk_wni_bpjs ?? 0)}</td>
                 <td className="px-5 py-3 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    <button className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                    <button className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    {renderRowActions(item, 'k4-jamsostek', fetchK4, getKotaName(item))}
                   </div>
                 </td>
               </tr>
@@ -1476,6 +1606,7 @@ const App = () => {
               <th className="px-4 py-4 text-center">Hukum Nota 1</th>
               <th className="px-4 py-4 text-center">Hukum Nota 2</th>
               <th className="px-4 py-4 text-center">Hukum LK</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -1494,6 +1625,7 @@ const App = () => {
                 <td className="px-4 py-3 text-center">{Number(item.hukum_nota_1 ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.hukum_nota_2 ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.hukum_lk ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k5-pemeriksaan', fetchK5, item.jabatan_pengawas)}</td>
               </tr>
             ))}
           </tbody>
@@ -1530,6 +1662,7 @@ const App = () => {
                 <th className="px-5 py-4">Jenis Kegiatan</th>
                 <th className="px-5 py-4 text-center">Jml Pelaksanaan</th>
                 <th className="px-5 py-4">Keterangan</th>
+                <th className="px-5 py-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -1542,11 +1675,12 @@ const App = () => {
                   <td className="px-5 py-3">{item.jenis_kegiatan}</td>
                   <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_pelaksanaan ?? 0)}</td>
                   <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
+                  <td className="px-5 py-3 text-center">{renderRowActions(item, 'k6-kegiatan-kbli', fetchK6, getKotaName(item))}</td>
                 </tr>
               ))}
               {filteredDataK6.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="px-5 py-8 text-center text-slate-500">Belum ada data untuk {getActiveTitle()}.</td>
+                  <td colSpan="8" className="px-5 py-8 text-center text-slate-500">Belum ada data untuk {getActiveTitle()}.</td>
                 </tr>
               )}
             </tbody>
@@ -1589,6 +1723,7 @@ const App = () => {
               <th className="px-4 py-4 text-center">Kimia</th>
               <th className="px-4 py-4 text-center">Makan</th>
               <th className="px-4 py-4 text-center">P2K3</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -1611,6 +1746,7 @@ const App = () => {
                 <td className="px-4 py-3 text-center">{Number(item.kimia ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.makan ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.p2k3 ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k7-perizinan', fetchK7, getKotaName(item))}</td>
               </tr>
             ))}
           </tbody>
@@ -1998,6 +2134,7 @@ const App = () => {
               <th className="px-4 py-4 text-center">Jml Kasus</th><th className="px-4 py-4 text-center">Keracunan</th><th className="px-4 py-4 text-center">Meninggal</th>
               <th className="px-4 py-4 text-center">Dugaan PAK</th><th className="px-4 py-4 text-center">PAK</th><th className="px-4 py-4 text-center">Korban Total</th>
               <th className="px-4 py-4 text-center">Tipe A</th><th className="px-4 py-4 text-center">Tipe B</th><th className="px-4 py-4 text-center">Tipe C</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -2007,6 +2144,7 @@ const App = () => {
                 <td className="px-4 py-3 text-center">{Number(item.jml_kasus ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.keracunan ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.meninggal ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.dugaan_pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.korban_total ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.tipe_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.tipe_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.tipe_c ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k8a-kasus-kecelakaan', fetchK8A, getKotaName(item))}</td>
               </tr>
             ))}
           </tbody>
@@ -2028,6 +2166,7 @@ const App = () => {
               <th className="px-4 py-4">Bulan</th><th className="px-4 py-4">Tahun</th><th className="px-4 py-4">Kabupaten/Kota</th>
               <th className="px-4 py-4 text-center">Sumber A</th><th className="px-4 py-4 text-center">Sumber B</th><th className="px-4 py-4 text-center">Sumber C</th>
               <th className="px-4 py-4 text-center">Sumber D</th><th className="px-4 py-4 text-center">Sumber E</th><th className="px-4 py-4 text-center">Sumber F</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -2036,6 +2175,7 @@ const App = () => {
                 <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.sumber_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_c ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.sumber_d ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_e ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_f ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k8b-sumber-bahaya', fetchK8B, getKotaName(item))}</td>
               </tr>
             ))}
           </tbody>
@@ -2057,6 +2197,7 @@ const App = () => {
               <th className="px-4 py-4">Bulan</th><th className="px-4 py-4">Tahun</th><th className="px-4 py-4">Kabupaten/Kota</th>
               <th className="px-4 py-4 text-center">Sembuh</th><th className="px-4 py-4 text-center">STMB</th><th className="px-4 py-4 text-center">Cacat</th>
               <th className="px-4 py-4 text-center">Meninggal</th><th className="px-4 py-4 text-center">Santunan Berkala</th><th className="px-4 py-4 text-center">Santunan Sekaligus</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -2065,6 +2206,7 @@ const App = () => {
                 <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.akibat_sembuh ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_stmb ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_cacat ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.akibat_meninggal ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_berkala ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_sekaligus ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k8c-akibat-santunan', fetchK8C, getKotaName(item))}</td>
               </tr>
             ))}
           </tbody>
@@ -2086,6 +2228,7 @@ const App = () => {
               <th className="px-4 py-4">Bulan</th><th className="px-4 py-4">Tahun</th><th className="px-4 py-4">Kabupaten/Kota</th>
               <th className="px-4 py-4 text-center">Jml Pelanggar</th><th className="px-4 py-4 text-center">Jml di Nota</th><th className="px-4 py-4 text-center">Wlkp</th>
               <th className="px-4 py-4 text-center">Wkwi</th><th className="px-4 py-4 text-center">Penggunaan TKA</th><th className="px-4 py-4 text-center">PMI</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -2094,6 +2237,7 @@ const App = () => {
                 <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.jml_perusahaan_melanggar ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.jml_di_nota ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pelanggaran_wlkp ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.pelanggaran_wkwi ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.penggunaan_tka ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pmi ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k9a-pelanggaran-kerja', fetchK9A, getKotaName(item))}</td>
               </tr>
             ))}
           </tbody>
@@ -2115,6 +2259,7 @@ const App = () => {
               <th className="px-4 py-4">Bulan</th><th className="px-4 py-4">Tahun</th><th className="px-4 py-4">Kabupaten/Kota</th>
               <th className="px-4 py-4 text-center">Pelanggaran P2K3</th><th className="px-4 py-4 text-center">Ahli K3</th><th className="px-4 py-4 text-center">Personil K3 Lainnya</th>
               <th className="px-4 py-4 text-center">PJK3</th><th className="px-4 py-4 text-center">Unit P3K</th><th className="px-4 py-4 text-center">Sarana Makan</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -2123,6 +2268,7 @@ const App = () => {
                 <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.pelanggaran_p2k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.ahli_k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.personil_k3_lainnya ?? 0)}</td>
                 <td className="px-4 py-3 text-center">{Number(item.pjk3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.unit_p3k ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sarana_makan ?? 0)}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k9b-pelanggaran-k3', fetchK9B, getKotaName(item))}</td>
               </tr>
             ))}
           </tbody>
@@ -2144,6 +2290,7 @@ const App = () => {
               <th className="px-4 py-4">Bulan</th><th className="px-4 py-4">Tahun</th><th className="px-4 py-4">Kabupaten/Kota</th>
               <th className="px-4 py-4">Nomor Laporan</th><th className="px-4 py-4">Dugaan Pelanggaran</th><th className="px-4 py-4 text-center">Status</th>
               <th className="px-4 py-4 text-center">Proses</th><th className="px-4 py-4 text-center">Denda</th><th className="px-4 py-4 text-center">Kurungan</th>
+              <th className="px-4 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -2152,6 +2299,7 @@ const App = () => {
                 <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                 <td className="px-4 py-3 font-medium">{item.no_laporan}</td><td className="px-4 py-3">{item.dugaan_pelanggaran}</td><td className="px-4 py-3 text-center">{item.status_selesai ?? '-'}</td>
                 <td className="px-4 py-3 text-center">{item.proses ?? '-'}</td><td className="px-4 py-3 text-center">{Number(item.putusan_denda ?? 0)}</td><td className="px-4 py-3 text-center">{item.putusan_kurungan ?? '-'}</td>
+                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k10-penyidikan', fetchK10, item.no_laporan)}</td>
               </tr>
             ))}
           </tbody>
@@ -2785,7 +2933,9 @@ const App = () => {
         {/* Content Area */}
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
-            {activeMenu === 'PROFILE' ? (
+            {activeMenu === 'EDIT' ? (
+              renderEditPage()
+            ) : activeMenu === 'PROFILE' ? (
               renderProfilePage()
             ) : activeMenu === 'K1' || activeMenu === 'K2' || activeMenu === 'K3' || activeMenu === 'K4' || activeMenu === 'K5' || k6MenuIds.includes(activeMenu) || activeMenu === 'K7' || activeMenu === '8A' || activeMenu === '8B' || activeMenu === '8C' || activeMenu === '9A' || activeMenu === '9B' || activeMenu === 'K10' ? (
               <div>
