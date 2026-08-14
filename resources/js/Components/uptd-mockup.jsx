@@ -145,6 +145,37 @@ const k3ColorClasses = {
   slate: { box: 'bg-slate-50 border-slate-200', dot: 'bg-slate-500', text: 'text-slate-700' },
 };
 
+// Struktur grup field K4 — mengikuti persis pola K3 untuk form input & panel detail
+const k4FieldGroups = [
+  {
+    title: '2. Perusahaan Terdaftar BPJS Kesehatan',
+    color: 'sky',
+    fields: [
+      ['jml_perusahaan_bpjs', 'Jumlah Perusahaan Terdaftar BPJS Kesehatan'],
+    ],
+  },
+  {
+    title: '3. Jumlah Tenaga Kerja BPJS Kesehatan',
+    color: 'amber',
+    fields: [
+      ['tk_wni_bpjs', 'Warga Negara Indonesia (WNI)'],
+      ['tk_wna_bpjs', 'Warga Negara Asing (WNA)'],
+    ],
+  },
+  {
+    title: '4. Program Terdaftar',
+    color: 'green',
+    fields: [
+      ['prog_jkn', 'JKN'],
+      ['prog_jkk_jkm', 'JKK & JKM'],
+      ['prog_jht', 'JHT'],
+      ['prog_jp', 'JP'],
+      ['prog_jkp', 'JKP'],
+    ],
+  },
+];
+
+
 const App = () => {
   const { auth } = usePage().props;
   const user = auth?.user ?? {
@@ -790,7 +821,7 @@ const App = () => {
     return (
       <button
         onClick={() => toggleRow(rowId)}
-        className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}
+        className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-[#071A2F] text-white' : 'bg-slate-100 text-[#071A2F] hover:bg-[#071A2F]/5'}`}
         title={isExpanded ? 'Tutup Detail' : 'Lihat Detail'}
       >
         {isExpanded ? 'Tutup' : 'Detail'}
@@ -981,15 +1012,15 @@ const App = () => {
   const isParentActive = (menu) => menu.id === activeMenu || (menu.subMenus && menu.subMenus.some((s) => s.id === activeMenu));
 
   const renderSidebar = () => (
-    <aside className="w-72 bg-gradient-to-b from-slate-900 to-slate-950 text-white flex flex-col h-screen fixed border-r border-white/5">
+    <aside className="w-72 bg-gradient-to-b from-[#071A2F] via-[#0A2540] to-[#071A2F] text-white flex flex-col h-screen fixed border-r border-white/5">
       {/* Brand */}
       <div className="px-5 py-5 flex items-center gap-3 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 overflow-hidden">
+        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-yellow-400/20 shrink-0 overflow-hidden">
           <img src="/image/logo_dnk.jpg" alt="Logo Disnakertrans" className="w-8 h-8 object-contain" />
         </div>
         <div className="min-w-0">
           <h1 className="text-base font-bold tracking-tight leading-tight truncate">
-            Inspecto <span className="text-sky-400 font-bold">UPTD</span>
+            Inspecto <span className="text-yellow-400 font-bold">UPTD</span>
           </h1>
           <p className="text-[11px] text-slate-400 leading-tight truncate">Dinas Ketenagakerjaan</p>
         </div>
@@ -1012,7 +1043,7 @@ const App = () => {
                         : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
                     }`}
                   >
-                    <svg className={`w-[18px] h-[18px] shrink-0 transition-colors ${isParentActive(menu) ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.75">
+                    <svg className={`w-[18px] h-[18px] shrink-0 transition-colors ${isParentActive(menu) ? 'text-yellow-400' : 'text-slate-500 group-hover:text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.75">
                       <path strokeLinecap="round" strokeLinejoin="round" d={menu.icon} />
                     </svg>
                     <span className="flex-1 text-left font-medium truncate">{menu.short} <span className="font-normal text-[13px] opacity-90">- {menu.label}</span></span>
@@ -1031,7 +1062,7 @@ const App = () => {
                             onClick={() => goToMenu(subMenu.id)}
                             className={`w-full text-left px-3 py-2 text-[13px] rounded-lg transition-all duration-150 ${
                               activeMenu === subMenu.id
-                                ? 'bg-sky-500 text-white font-semibold shadow-sm'
+                                ? 'bg-yellow-400 text-[#071A2F] font-semibold shadow-sm'
                                 : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
                             }`}
                           >
@@ -1048,14 +1079,14 @@ const App = () => {
                   onClick={() => goToMenu(menu.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group ${
                     activeMenu === menu.id
-                      ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold shadow-md shadow-sky-500/25'
+                      ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-[#071A2F] font-semibold shadow-md shadow-yellow-500/25'
                       : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
                   }`}
                 >
-                  <svg className={`w-[18px] h-[18px] shrink-0 ${activeMenu === menu.id ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.75">
+                  <svg className={`w-[18px] h-[18px] shrink-0 ${activeMenu === menu.id ? 'text-[#071A2F]' : 'text-slate-500 group-hover:text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.75">
                     <path strokeLinecap="round" strokeLinejoin="round" d={menu.icon} />
                   </svg>
-                  <span className="truncate">{menu.short} <span className={`font-normal text-[13px] ${activeMenu === menu.id ? 'opacity-90 text-white' : 'opacity-90'}`}>- {menu.label}</span></span>
+                  <span className="truncate">{menu.short} <span className={`font-normal text-[13px] ${activeMenu === menu.id ? 'opacity-90 text-[#071A2F]' : 'opacity-90'}`}>- {menu.label}</span></span>
                 </button>
               )}
             </li>
@@ -1140,7 +1171,7 @@ const App = () => {
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+            className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
           >
             Simpan Perubahan
           </button>
@@ -1159,7 +1190,7 @@ const App = () => {
 
         <div className="p-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
           <div className="flex flex-col items-center text-center">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center overflow-hidden text-5xl font-bold shadow-lg shadow-sky-500/20 ring-4 ring-sky-50">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#0A2540] to-[#071A2F] text-white flex items-center justify-center overflow-hidden text-5xl font-bold shadow-lg shadow-[#071A2F]/20 ring-4 ring-yellow-100">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Foto profil" className="w-full h-full object-cover" />
               ) : (
@@ -1167,7 +1198,7 @@ const App = () => {
               )}
             </div>
 
-            <label className={`mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg transition-all shadow-sm cursor-pointer active:scale-[0.98] ${isUploadingProfilePhoto ? 'opacity-70 pointer-events-none' : 'hover:bg-sky-700 hover:shadow-md'}`}>
+            <label className={`mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg transition-all shadow-sm cursor-pointer active:scale-[0.98] ${isUploadingProfilePhoto ? 'opacity-70 pointer-events-none' : 'hover:bg-[#0A2540] hover:shadow-md'}`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 7l-4-4m0 0L8 7m4-4v14" />
               </svg>
@@ -1192,7 +1223,7 @@ const App = () => {
                     <button
                       type="button"
                       onClick={saveProfileName}
-                      className="px-4 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 transition-all shadow-sm"
+                      className="px-4 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] transition-all shadow-sm"
                     >
                       Simpan
                     </button>
@@ -1327,7 +1358,7 @@ const App = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 transition-all shadow-sm"
+              className="px-4 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] transition-all shadow-sm"
             >
               Simpan Password
             </button>
@@ -1369,17 +1400,17 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-5 py-3">{item.bulan}</td>
                     <td className="px-5 py-3">{item.tahun}</td>
                     <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                    <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_perusahaan ?? 0).toLocaleString()}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(item.jml_perusahaan ?? 0).toLocaleString()}</td>
                     <td className="px-5 py-3 text-center text-slate-700">{totalTK.toLocaleString()}</td>
                     <td className="px-5 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => toggleRow(item.id)}
-                          className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}
+                          className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-[#071A2F] text-white' : 'bg-slate-100 text-[#071A2F] hover:bg-[#071A2F]/5'}`}
                           title={isExpanded ? 'Tutup Detail' : 'Lihat Detail'}
                         >
                           {isExpanded ? 'Tutup' : 'Detail'}
@@ -1398,7 +1429,7 @@ const App = () => {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="bg-white p-4 rounded-md shadow-sm border border-slate-200">
-                              <h5 className="text-xs font-bold text-sky-600 uppercase mb-3 flex items-center gap-2"><div className="w-2 h-2 bg-sky-600 rounded-full"></div> Tenaga Kerja</h5>
+                              <h5 className="text-xs font-bold text-[#071A2F] uppercase mb-3 flex items-center gap-2"><div className="w-2 h-2 bg-[#071A2F] rounded-full"></div> Tenaga Kerja</h5>
                               <div className="space-y-2 text-sm">
                                 <div className="flex justify-between items-center"><span className="text-slate-500">WNI (Laki-laki)</span> <span className="font-medium">{Number(item.tk_wni_l ?? 0).toLocaleString()}</span></div>
                                 <div className="flex justify-between items-center"><span className="text-slate-500">WNI (Perempuan)</span> <span className="font-medium">{Number(item.tk_wni_p ?? 0).toLocaleString()}</span></div>
@@ -1470,11 +1501,11 @@ const App = () => {
       
       <form className="p-6 space-y-8" onSubmit={handleSubmit}>
         <section>
-          <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">1. Informasi Umum</h4>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
-              <select name="bulan" value={formData.bulan} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500">
+              <select name="bulan" value={formData.bulan} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
                 <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
                 <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
@@ -1483,24 +1514,24 @@ const App = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
-              <input name="tahun" type="number" value={formData.tahun} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500" />
+              <input name="tahun" type="number" value={formData.tahun} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
-              <select name="id_kota" value={formData.id_kota} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500">{renderKabKotaOptions()}</select>
+              <select name="id_kota" value={formData.id_kota} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">{renderKabKotaOptions()}</select>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Total Jumlah Perusahaan</label>
-              <input name="jml_perusahaan" type="number" value={formData.jml_perusahaan} onChange={handleChange} placeholder="0" className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50" />
+              <input name="jml_perusahaan" type="number" value={formData.jml_perusahaan} onChange={handleChange} placeholder="0" className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-slate-50" />
             </div>
           </div>
         </section>
 
         <section>
-          <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">2. Jumlah Tenaga Kerja</h4>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">2. Jumlah Tenaga Kerja</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-sky-50/50 p-4 rounded-lg border border-sky-100">
-              <p className="font-semibold text-sky-800 mb-3 text-sm">Warga Negara Indonesia (WNI)</p>
+            <div className="bg-[#071A2F]/5 p-4 rounded-lg border border-[#071A2F]/10">
+              <p className="font-semibold text-[#071A2F] mb-3 text-sm">Warga Negara Indonesia (WNI)</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1.5">Laki-Laki (L)</label>
@@ -1512,8 +1543,8 @@ const App = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-sky-50/50 p-4 rounded-lg border border-sky-100">
-              <p className="font-semibold text-sky-800 mb-3 text-sm">Warga Negara Asing (WNA)</p>
+            <div className="bg-[#071A2F]/5 p-4 rounded-lg border border-[#071A2F]/10">
+              <p className="font-semibold text-[#071A2F] mb-3 text-sm">Warga Negara Asing (WNA)</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1.5">Laki-Laki (L)</label>
@@ -1530,7 +1561,7 @@ const App = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <section>
-            <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">3. Kategori Perusahaan</h4>
+            <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">3. Kategori Perusahaan</h4>
             <div className="grid grid-cols-2 gap-4 bg-yellow-50/30 p-4 border border-yellow-100 rounded-lg">
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">Mikro</label>
@@ -1552,7 +1583,7 @@ const App = () => {
           </section>
 
           <section>
-            <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">4. Kelembagaan & Hub. Industrial</h4>
+            <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">4. Kelembagaan & Hub. Industrial</h4>
             <div className="grid grid-cols-2 gap-4 bg-purple-50/30 p-4 border border-purple-100 rounded-lg">
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">PP</label>
@@ -1575,7 +1606,7 @@ const App = () => {
         </div>
 
         <section>
-          <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">5. Status Kepemilikan Perusahaan</h4>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">5. Status Kepemilikan Perusahaan</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-green-50/30 p-4 border border-green-100 rounded-lg">
             {[
               ['stat_swasta', 'Swasta'],
@@ -1596,7 +1627,7 @@ const App = () => {
         </section>
 
         <section>
-          <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">6. Keterangan / Penghargaan K3</h4>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">6. Keterangan / Penghargaan K3</h4>
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1.5">Penghargaan K3 yang dimiliki perusahaan</label>
             <textarea
@@ -1605,7 +1636,7 @@ const App = () => {
               value={formData.penghargaan_k3}
               onChange={handleChange}
               placeholder="Contoh: 15 Perusahaan mendapat Zero Accident, 5 Perusahaan mendapat Sertifikat SMK3..."
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400"
             ></textarea>
           </div>
         </section>
@@ -1614,7 +1645,7 @@ const App = () => {
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">
             Batal
           </button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
             Simpan Data
           </button>
         </div>
@@ -1697,10 +1728,10 @@ const App = () => {
 
                 return (
                   <React.Fragment key={`k1-${group.key}`}>
-                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                       <td className="px-5 py-3 font-medium text-slate-800">{group.bulan}</td>
                       <td className="px-5 py-3">{group.tahun}</td>
-                      <td className="px-5 py-3 text-center font-semibold text-sky-600">{totalPengawasUmum.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalPengawasUmum.toLocaleString()}</td>
                       <td className="px-5 py-3 text-center font-semibold text-purple-600">{totalPpns.toLocaleString()}</td>
                       <td className="px-5 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -1797,7 +1828,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-5 py-3">{item.bulan}</td>
                     <td className="px-5 py-3">{item.tahun}</td>
                     <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
@@ -1869,32 +1900,23 @@ const App = () => {
               <th className="px-5 py-4">Tahun</th>
               <th className="px-5 py-4">Kabupaten/Kota</th>
               <th className="px-5 py-4 text-center">Jml Perusahaan BPJS</th>
-              <th className="px-5 py-4 text-center">TK WNI BPJS</th>
+              <th className="px-5 py-4 text-center">JMLH TK BPJS</th>
               <th className="px-5 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {dataK4.map((item) => {
               const isExpanded = expandedRow === `k4-${item.id}`;
-              const k4Fields = [
-                ['jml_perusahaan_bpjs', 'Jml Perusahaan BPJS'],
-                ['tk_wni_bpjs', 'TK WNI BPJS'],
-                ['tk_wna_bpjs', 'TK WNA BPJS'],
-                ['prog_jkn', 'Program JKN'],
-                ['prog_jkk_jkm', 'Program JKK & JKM'],
-                ['prog_jht', 'Program JHT'],
-                ['prog_jp', 'Program JP'],
-                ['prog_jkp', 'Program JKP'],
-              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+              const totalTkBpjs = Number(item.tk_wni_bpjs ?? 0) + Number(item.tk_wna_bpjs ?? 0);
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-5 py-3">{item.bulan}</td>
                     <td className="px-5 py-3">{item.tahun}</td>
                     <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                    <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_perusahaan_bpjs ?? 0)}</td>
-                    <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.tk_wni_bpjs ?? 0)}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(item.jml_perusahaan_bpjs ?? 0).toLocaleString()}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-purple-600">{totalTkBpjs.toLocaleString()}</td>
                     <td className="px-5 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         {renderDetailButton(`k4-${item.id}`)}
@@ -1902,7 +1924,45 @@ const App = () => {
                       </div>
                     </td>
                   </tr>
-                  {isExpanded && renderDetailPanel(6, `Rincian Data K4: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k4Fields)}
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan="6" className="p-0 border-b border-slate-300">
+                        <div className="bg-slate-100 p-6 shadow-inner">
+                          <h4 className="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-300">Rincian Data: {getKotaName(item)} ({item.bulan} {item.tahun})</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {k4FieldGroups.map((group) => {
+                              const colors = k3ColorClasses[group.color];
+                              return (
+                                <div key={group.title} className="bg-white p-4 rounded-md shadow-sm border border-slate-200">
+                                  <h5 className={`text-xs font-bold uppercase mb-3 flex items-center gap-2 ${colors.text}`}>
+                                    <div className={`w-2 h-2 rounded-full ${colors.dot}`}></div>
+                                    {group.title.replace(/^\d+\.\s*/, '')}
+                                  </h5>
+                                  <div className="space-y-2 text-sm">
+                                    {group.fields.map(([key, label]) => (
+                                      <div key={key} className="flex justify-between items-center">
+                                        <span className="text-slate-500">{label}</span>
+                                        <span className="font-medium">{Number(item[key] ?? 0).toLocaleString()}</span>
+                                      </div>
+                                    ))}
+                                    {group.title.startsWith('3.') && (
+                                      <>
+                                        <div className="border-t border-dashed border-slate-200 my-1"></div>
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-700 font-semibold">JMLH TK BPJS</span>
+                                          <span className="font-bold text-[#071A2F]">{totalTkBpjs.toLocaleString()}</span>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               );
             })}
@@ -1963,7 +2023,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td>
                     <td className="px-4 py-3">{item.tahun}</td>
                     <td className="px-4 py-3 font-medium text-slate-800">{item.jabatan_pengawas}</td>
@@ -2040,13 +2100,13 @@ const App = () => {
 
                 return (
                   <React.Fragment key={item.id}>
-                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                       <td className="px-5 py-3">{item.bulan}</td>
                       <td className="px-5 py-3">{item.tahun}</td>
                       <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                       <td className="px-5 py-3 font-medium text-slate-700">{kodeKbli}</td>
                       <td className="px-5 py-3">{item.jenis_kegiatan}</td>
-                      <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_pelaksanaan ?? 0)}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(item.jml_pelaksanaan ?? 0)}</td>
                       <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
                       <td className="px-5 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -2129,7 +2189,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td>
                     <td className="px-4 py-3">{item.tahun}</td>
                     <td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
@@ -2210,7 +2270,7 @@ const App = () => {
                             min="0"
                             value={formDataK1.jabatan[jabatan][field.key]}
                             onChange={(e) => handleChangeK1Jabatan(jabatan, field.key, e.target.value)}
-                            className="w-20 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="w-20 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
                           />
                         </td>
                       ))}
@@ -2224,7 +2284,7 @@ const App = () => {
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Semua Data K1</button>
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Semua Data K1</button>
         </div>
       </form>
     </div>
@@ -2238,7 +2298,7 @@ const App = () => {
       </div>
       <form className="p-6 space-y-8" onSubmit={handleSubmitK3}>
         <section>
-          <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">1. Informasi Umum</h4>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
@@ -2264,7 +2324,7 @@ const App = () => {
           const colors = k3ColorClasses[group.color];
           return (
             <section key={group.title}>
-              <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">{group.title}</h4>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">{group.title}</h4>
               <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg ${colors.box}`}>
                 {group.fields.map(([key, label]) => (
                   <div key={key}>
@@ -2279,7 +2339,7 @@ const App = () => {
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
         </div>
       </form>
     </div>
@@ -2292,44 +2352,49 @@ const App = () => {
         <p className="text-xs text-slate-500 mt-1">Jamsostek / BPJS Ketenagakerjaan</p>
       </div>
       <form className="p-6 space-y-8" onSubmit={handleSubmitK4}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
-            <select name="bulan" value={formDataK4.bulan} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
-              <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
-              <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
-              <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
-              <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
-            <input name="tahun" type="number" value={formDataK4.tahun} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
-            <select name="id_kota" value={formDataK4.id_kota} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">{renderKabKotaOptions()}</select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Jml Perusahaan BPJS</label>
-            <input name="jml_perusahaan_bpjs" type="number" value={formDataK4.jml_perusahaan_bpjs} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
-          </div>
-        </div>
-
         <section>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['tk_wni_bpjs','tk_wna_bpjs','prog_jkn','prog_jkk_jkm','prog_jht','prog_jp','prog_jkp'].map((key) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{key.replace(/_/g, ' ')}</label>
-                <input name={key} type="number" value={formDataK4[key]} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
-              </div>
-            ))}
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
+              <select name="bulan" value={formDataK4.bulan} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
+                <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
+                <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
+                <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
+                <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
+              <input name="tahun" type="number" value={formDataK4.tahun} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
+              <select name="id_kota" value={formDataK4.id_kota} onChange={handleChangeK4} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">{renderKabKotaOptions()}</select>
+            </div>
           </div>
         </section>
 
+        {k4FieldGroups.map((group) => {
+          const colors = k3ColorClasses[group.color];
+          return (
+            <section key={group.title}>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">{group.title}</h4>
+              <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg ${colors.box}`}>
+                {group.fields.map(([key, label]) => (
+                  <div key={key}>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
+                    <input name={key} type="number" min="0" value={formDataK4[key]} onChange={handleChangeK4} placeholder="0" className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
         </div>
       </form>
     </div>
@@ -2385,7 +2450,7 @@ const App = () => {
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
         </div>
       </form>
     </div>
@@ -2444,7 +2509,7 @@ const App = () => {
                           min="0"
                           value={formDataK6.data_kbli[item.kode]}
                           onChange={(e) => handleChangeK6Kbli(item.kode, e.target.value)}
-                          className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow text-center focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         />
                       </td>
                     </tr>
@@ -2464,7 +2529,7 @@ const App = () => {
               min="0"
               value={formDataK6.jml_pelaksanaan_global}
               onChange={handleChangeK6}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
           <div className="lg:col-span-2">
@@ -2474,14 +2539,14 @@ const App = () => {
               rows="3"
               value={formDataK6.keterangan_global}
               onChange={handleChangeK6}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
         </section>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Semua Data K6</button>
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Semua Data K6</button>
         </div>
       </form>
     </div>
@@ -2529,7 +2594,7 @@ const App = () => {
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
+          <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button>
         </div>
       </form>
     </div>
@@ -2568,7 +2633,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.jml_kasus ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.keracunan ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.meninggal ?? 0)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.dugaan_pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.korban_total ?? 0)}</td>
@@ -2615,7 +2680,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.sumber_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_c ?? 0)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.sumber_d ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_e ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_f ?? 0)}</td>
@@ -2664,7 +2729,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.akibat_sembuh ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_stmb ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_cacat ?? 0)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.akibat_meninggal ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_berkala ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_sekaligus ?? 0)}</td>
@@ -2718,7 +2783,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.jml_perusahaan_melanggar ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.jml_di_nota ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pelanggaran_wlkp ?? 0)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.pelanggaran_wkwi ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.penggunaan_tka ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pmi ?? 0)}</td>
@@ -2768,7 +2833,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.pelanggaran_p2k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.ahli_k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.personil_k3_lainnya ?? 0)}</td>
                     <td className="px-4 py-3 text-center">{Number(item.pjk3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.unit_p3k ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sarana_makan ?? 0)}</td>
@@ -2821,7 +2886,7 @@ const App = () => {
 
               return (
                 <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
                     <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-4 py-3 font-medium">{item.no_laporan}</td><td className="px-4 py-3">{item.dugaan_pelanggaran}</td><td className="px-4 py-3 text-center">{item.status_selesai ?? '-'}</td>
                     <td className="px-4 py-3 text-center">{item.proses ?? '-'}</td><td className="px-4 py-3 text-center">{Number(item.putusan_denda ?? 0)}</td><td className="px-4 py-3 text-center">{item.putusan_kurungan ?? '-'}</td>
@@ -2858,7 +2923,7 @@ const App = () => {
             ))}
           </div>
         </section>
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
       </form>
     </div>
   );
@@ -2879,7 +2944,7 @@ const App = () => {
             ))}
           </div>
         </section>
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
       </form>
     </div>
   );
@@ -2900,7 +2965,7 @@ const App = () => {
             ))}
           </div>
         </section>
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
       </form>
     </div>
   );
@@ -2921,7 +2986,7 @@ const App = () => {
             ))}
           </div>
         </section>
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
       </form>
     </div>
   );
@@ -2942,7 +3007,7 @@ const App = () => {
             ))}
           </div>
         </section>
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
       </form>
     </div>
   );
@@ -2969,7 +3034,7 @@ const App = () => {
             </div>
           </div>
         </section>
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200"><button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button><button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">Simpan Data</button></div>
       </form>
     </div>
   );
@@ -3405,7 +3470,7 @@ const App = () => {
          <p className="text-sm mt-1">Struktur tabel mengikuti template standar yang terpadu dengan Aksi (Detail, Edit, Hapus).</p>
          <div className="mt-6 flex items-center gap-3 px-4 py-2 bg-white shadow-sm border border-slate-200 rounded-md">
             <span className="text-xs font-medium text-slate-600">Preview Aksi:</span>
-            <button className="p-1.5 bg-sky-100 text-sky-700 rounded"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+            <button className="p-1.5 bg-[#071A2F]/10 text-[#071A2F] rounded"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
             <button className="p-1.5 bg-amber-100 text-amber-700 rounded"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
             <button className="p-1.5 bg-red-100 text-red-700 rounded"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
          </div>
@@ -3419,8 +3484,8 @@ const App = () => {
         input, select, textarea { transition: box-shadow .15s ease, border-color .15s ease; }
         input:focus, select:focus, textarea:focus {
           outline: none;
-          border-color: #0ea5e9;
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+          border-color: #facc15;
+          box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2);
         }
         input:hover:not(:focus), select:hover:not(:focus) { border-color: #94a3b8; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -3447,14 +3512,14 @@ const App = () => {
               onClick={openProfile}
               className={`flex items-center gap-3 rounded-full pl-3 pr-1.5 py-1.5 transition-all ${
                 activeMenu === 'PROFILE'
-                  ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200'
+                  ? 'bg-yellow-50 text-[#071A2F] ring-1 ring-yellow-300'
                   : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
               }`}
             >
               <span className="text-sm hidden sm:inline">
                 Welcome, <strong className="font-semibold">{profileName}</strong>
               </span>
-              <span className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-sky-700 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-sky-500/20 ring-2 ring-white overflow-hidden">
+              <span className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A2540] to-[#071A2F] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-[#071A2F]/20 ring-2 ring-white overflow-hidden">
                 {profilePhoto ? (
                   <img src={profilePhoto} alt="Foto profil" className="w-full h-full object-cover" />
                 ) : (
@@ -3480,7 +3545,7 @@ const App = () => {
                     onClick={() => setActiveTab('lihat')}
                     className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 ${
                       activeTab === 'lihat'
-                        ? 'bg-white text-sky-600 shadow-sm'
+                        ? 'bg-white text-[#071A2F] shadow-sm'
                         : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
@@ -3493,7 +3558,7 @@ const App = () => {
                     onClick={() => setActiveTab('input')}
                     className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 ${
                       activeTab === 'input'
-                        ? 'bg-white text-sky-600 shadow-sm'
+                        ? 'bg-white text-[#071A2F] shadow-sm'
                         : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
