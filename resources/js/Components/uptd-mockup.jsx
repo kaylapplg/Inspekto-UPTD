@@ -151,7 +151,6 @@ const App = () => {
     name: 'Admin Pengawas',
     email: 'admin@uptd.local',
   };
-  const userInitial = (user.name || 'A').trim().charAt(0).toUpperCase();
 
   // State untuk navigasi sidebar
   const [activeMenu, setActiveMenu] = useState('K1');
@@ -167,7 +166,12 @@ const App = () => {
 
   // State untuk baris tabel yang di-expand (dilebarkan)
   const [expandedRow, setExpandedRow] = useState(null);
-  const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem('profile_photo') || '');
+  const profilePhoto = user.profile_photo_url || '';
+  const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
+  const [profileName, setProfileName] = useState(() => localStorage.getItem('profile_name') || user.name || 'Admin Pengawas');
+  const [profileNameInput, setProfileNameInput] = useState(() => localStorage.getItem('profile_name') || user.name || 'Admin Pengawas');
+  const [isEditingProfileName, setIsEditingProfileName] = useState(false);
+  const userInitial = (profileName || 'A').trim().charAt(0).toUpperCase();
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -840,13 +844,39 @@ const App = () => {
 
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const photo = String(reader.result || '');
-      setProfilePhoto(photo);
-      localStorage.setItem('profile_photo', photo);
-    };
-    reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append('profile_photo', file);
+
+    setIsUploadingProfilePhoto(true);
+
+    router.post('/profile/photo', formData, {
+      forceFormData: true,
+      preserveScroll: true,
+      onError: (errors) => {
+        const message = errors?.profile_photo || errors?.message || 'Gagal mengubah foto profil. Pastikan file berupa JPG, PNG, atau WebP maksimal 2MB.';
+        alert(Array.isArray(message) ? message[0] : message);
+      },
+      onSuccess: () => {
+        router.reload({ only: ['auth'], preserveScroll: true });
+      },
+      onFinish: () => {
+        setIsUploadingProfilePhoto(false);
+        event.target.value = '';
+      },
+    });
+  };
+
+  const saveProfileName = () => {
+    const nextName = profileNameInput.trim();
+
+    if (!nextName) {
+      alert('Nama tidak boleh kosong');
+      return;
+    }
+
+    setProfileName(nextName);
+    localStorage.setItem('profile_name', nextName);
+    setIsEditingProfileName(false);
   };
 
   const handlePasswordChange = (event) => {
@@ -890,7 +920,6 @@ const App = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('access_token');
-    localStorage.removeItem('profile_photo');
     sessionStorage.clear();
 
     router.post('/logout', {}, {
@@ -955,14 +984,12 @@ const App = () => {
     <aside className="w-72 bg-gradient-to-b from-slate-900 to-slate-950 text-white flex flex-col h-screen fixed border-r border-white/5">
       {/* Brand */}
       <div className="px-5 py-5 flex items-center gap-3 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM10.29 3.86L1.82 18a1.5 1.5 0 001.3 2.25h17.76a1.5 1.5 0 001.3-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z" />
-          </svg>
+        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 overflow-hidden">
+          <img src="/image/logo_dnk.jpg" alt="Logo Disnakertrans" className="w-8 h-8 object-contain" />
         </div>
         <div className="min-w-0">
           <h1 className="text-base font-bold tracking-tight leading-tight truncate">
-            Sistem <span className="text-sky-400">UPTD</span>
+            Inspecto <span className="text-sky-400 font-bold">UPTD</span>
           </h1>
           <p className="text-[11px] text-slate-400 leading-tight truncate">Dinas Ketenagakerjaan</p>
         </div>
@@ -1140,12 +1167,12 @@ const App = () => {
               )}
             </div>
 
-            <label className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]">
+            <label className={`mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg transition-all shadow-sm cursor-pointer active:scale-[0.98] ${isUploadingProfilePhoto ? 'opacity-70 pointer-events-none' : 'hover:bg-sky-700 hover:shadow-md'}`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 7l-4-4m0 0L8 7m4-4v14" />
               </svg>
-              Ubah Foto
-              <input type="file" accept="image/*" onChange={handleProfilePhotoChange} className="hidden" />
+              {isUploadingProfilePhoto ? 'Mengunggah...' : 'Ubah Foto'}
+              <input type="file" accept="image/*" onChange={handleProfilePhotoChange} disabled={isUploadingProfilePhoto} className="hidden" />
             </label>
           </div>
 
@@ -1153,9 +1180,50 @@ const App = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Nama</label>
-                <div className="w-full border border-slate-200 bg-slate-50 text-slate-800 rounded-lg px-4 py-3 text-sm font-semibold">
-                  {user.name || 'Admin Pengawas'}
-                </div>
+                {isEditingProfileName ? (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={profileNameInput}
+                      onChange={(event) => setProfileNameInput(event.target.value)}
+                      className="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm font-semibold"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={saveProfileName}
+                      className="px-4 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 transition-all shadow-sm"
+                    >
+                      Simpan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileNameInput(profileName);
+                        setIsEditingProfileName(false);
+                      }}
+                      className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-full border border-slate-200 bg-slate-50 text-slate-800 rounded-lg px-4 py-3 text-sm font-semibold">
+                      {profileName}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileNameInput(profileName);
+                        setIsEditingProfileName(true);
+                      }}
+                      className="px-4 py-2.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded-lg hover:bg-amber-200 transition-all shadow-sm"
+                    >
+                      Ubah
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -3384,7 +3452,7 @@ const App = () => {
               }`}
             >
               <span className="text-sm hidden sm:inline">
-                Welcome, <strong className="font-semibold">{user.name || 'Admin Pengawas'}</strong>
+                Welcome, <strong className="font-semibold">{profileName}</strong>
               </span>
               <span className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-sky-700 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-sky-500/20 ring-2 ring-white overflow-hidden">
                 {profilePhoto ? (
