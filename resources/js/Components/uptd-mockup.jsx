@@ -69,6 +69,82 @@ const createK6KbliData = () => kbliOptions.reduce((values, item) => ({
   [item.kode]: 0,
 }), {});
 
+// Struktur grup field K3 — dipakai bersama oleh form input & panel detail
+const k3FieldGroups = [
+  {
+    title: '2. Objek Pengawasan K3',
+    color: 'sky',
+    fields: [
+      ['pesawat_uap', 'Pesawat Uap'],
+      ['bejana_tekan', 'Bejana Bertekanan'],
+      ['pesawat_angkat_angkut', 'Pesawat Angkat Angkut'],
+      ['pesawat_tenaga_produksi', 'Pesawat Tenaga dan Produksi'],
+      ['kelistrikan', 'Kelistrikan'],
+      ['eskalator_elevator', 'Eskalator/Elevator'],
+      ['pencegahan_kebakaran', 'Pencegahan Kebakaran'],
+      ['kesehatan_kerja_catering', 'Kesehatan Kerja/Catering'],
+      ['konstruksi_bangunan', 'Konstruksi Bangunan'],
+    ],
+  },
+  {
+    title: '3. Lingkungan Kerja',
+    color: 'amber',
+    fields: [
+      ['lingkungan_fisika', 'Fisika'],
+      ['lingkungan_kimia', 'Kimia'],
+      ['lingkungan_biologi', 'Biologi'],
+      ['lingkungan_ergonomi', 'Ergonomi'],
+      ['lingkungan_psikologi', 'Psikologi'],
+    ],
+  },
+  {
+    title: '4. Bahan Berbahaya & Ruang Terbatas',
+    color: 'red',
+    fields: [
+      ['bahan_kimia_berbahaya', 'Bahan Kimia Berbahaya'],
+      ['ruang_terbatas', 'Ruang Terbatas'],
+    ],
+  },
+  {
+    title: '5. Sarana K3',
+    color: 'green',
+    fields: [
+      ['sarana_apd', 'APD'],
+      ['sarana_penyalur_petir', 'Penyalur Petir'],
+      ['sarana_evakuasi', 'Sarana Evakuasi'],
+      ['sarana_p3k', 'Fasilitas P3K'],
+      ['sarana_hygiene_sanitasi', 'Sarana Hygiene Sanitasi'],
+      ['sarana_kantin', 'Sarana Penyelenggara Makan (Kantin)'],
+    ],
+  },
+  {
+    title: '6. Personil K3',
+    color: 'purple',
+    fields: [
+      ['personil_ahli_k3', 'Ahli K3'],
+      ['personil_ahli_k3_spesialis', 'Ahli K3 Spesialis'],
+      ['personil_k3_lainnya', 'Personil K3 Lainnya'],
+    ],
+  },
+  {
+    title: '7. Kelembagaan & Perancah',
+    color: 'slate',
+    fields: [
+      ['p2k3', 'P2K3'],
+      ['perancah_bangun', 'Perancah Bangun'],
+    ],
+  },
+];
+
+const k3ColorClasses = {
+  sky: { box: 'bg-sky-50/30 border-sky-100', dot: 'bg-sky-600', text: 'text-sky-700' },
+  amber: { box: 'bg-amber-50/30 border-amber-100', dot: 'bg-amber-500', text: 'text-amber-700' },
+  red: { box: 'bg-red-50/30 border-red-100', dot: 'bg-red-500', text: 'text-red-700' },
+  green: { box: 'bg-green-50/30 border-green-100', dot: 'bg-green-500', text: 'text-green-700' },
+  purple: { box: 'bg-purple-50/30 border-purple-100', dot: 'bg-purple-500', text: 'text-purple-700' },
+  slate: { box: 'bg-slate-50 border-slate-200', dot: 'bg-slate-500', text: 'text-slate-700' },
+};
+
 const App = () => {
   const { auth } = usePage().props;
   const user = auth?.user ?? {
@@ -126,22 +202,39 @@ const App = () => {
     bulan: 'Agustus',
     tahun: 2026,
     id_kota: '',
+    // 2. Objek Pengawasan K3
     pesawat_uap: 0,
     bejana_tekan: 0,
-    pesawat_angkat: 0,
-    pesawat_tenaga: 0,
-    listrik: 0,
-    eskalator: 0,
-    cegah_kebakaran: 0,
-    kesehatan_kerja: 0,
-    konstruksi: 0,
-    lingkungan_kerja: 0,
-    bahan_kimia: 0,
+    pesawat_angkat_angkut: 0,
+    pesawat_tenaga_produksi: 0,
+    kelistrikan: 0,
+    eskalator_elevator: 0,
+    pencegahan_kebakaran: 0,
+    kesehatan_kerja_catering: 0,
+    konstruksi_bangunan: 0,
+    // 3. Lingkungan Kerja
+    lingkungan_fisika: 0,
+    lingkungan_kimia: 0,
+    lingkungan_biologi: 0,
+    lingkungan_ergonomi: 0,
+    lingkungan_psikologi: 0,
+    // 4. Bahan Berbahaya & Ruang Terbatas
+    bahan_kimia_berbahaya: 0,
     ruang_terbatas: 0,
-    sarana_k3: 0,
-    personil_k3: 0,
+    // 5. Sarana K3
+    sarana_apd: 0,
+    sarana_penyalur_petir: 0,
+    sarana_evakuasi: 0,
+    sarana_p3k: 0,
+    sarana_hygiene_sanitasi: 0,
+    sarana_kantin: 0,
+    // 6. Personil K3
+    personil_ahli_k3: 0,
+    personil_ahli_k3_spesialis: 0,
+    personil_k3_lainnya: 0,
+    // 7. Kelembagaan & Perancah
     p2k3: 0,
-    perancah: 0,
+    perancah_bangun: 0,
   });
 
   const [formDataK4, setFormDataK4] = useState({
@@ -649,7 +742,7 @@ const App = () => {
     const { name, value, type } = event.target;
     setEditForm((prev) => ({
       ...prev,
-      [name]: type === 'number' ? numericValue(value) : value,
+      [name]: (type === 'number' || name === 'id_kota') ? numericValue(value) : value,
     }));
   };
 
@@ -686,6 +779,40 @@ const App = () => {
       <button onClick={() => openEditPage(item, api, cb, name)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
       <button onClick={() => del(item.id, api, cb, name)} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
     </div>
+  );
+
+  const renderDetailButton = (rowId) => {
+    const isExpanded = expandedRow === rowId;
+    return (
+      <button
+        onClick={() => toggleRow(rowId)}
+        className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}
+        title={isExpanded ? 'Tutup Detail' : 'Lihat Detail'}
+      >
+        {isExpanded ? 'Tutup' : 'Detail'}
+        <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
+    );
+  };
+
+  const renderDetailPanel = (colSpan, title, fields) => (
+    <tr>
+      <td colSpan={colSpan} className="p-0 border-b border-slate-300">
+        <div className="bg-slate-100 p-6 shadow-inner">
+          <h4 className="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-300">{title}</h4>
+          <div className="bg-white p-4 rounded-md shadow-sm border border-slate-200">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+              {fields.map(([label, value]) => (
+                <div key={label} className="flex justify-between items-center border-b border-dashed border-slate-100 pb-1.5">
+                  <span className="text-slate-500">{label}</span>
+                  <span className="font-medium text-slate-800">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
   );
 
   const goToMenu = (menuId) => {
@@ -932,12 +1059,25 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(editForm).map(([key, value]) => {
             const isLongText = String(value ?? '').length > 80 || ['keterangan', 'dugaan_pelanggaran', 'proses'].includes(key);
-            const isNumber = typeof value === 'number' || ['tahun', 'id_kota', 'nilai'].includes(key) || key.startsWith('spesialis_') || /^(jml_|tk_|kat_|stat_|hi_|prog_|keg_|uji_|hukum_|pesawat_|bejana_|sumber_|akibat_|santunan_|pelanggaran_|putusan_|korban_|tipe_|dokter_|paramedis_|riksa_|lainnya|ppns|paa|ptp|listrik|elevator|petir|kebakaran|konstruksi|klinik|lingkungan|kimia|makan|p2k3|keracunan|meninggal|pak|ahli_k3|pjk3|pmi|thr|pesangon)/.test(key);
+            const isKota = key === 'id_kota';
+            const isNumber = !isKota && (typeof value === 'number' || ['tahun', 'nilai'].includes(key) || key.startsWith('spesialis_') || /^(jml_|tk_|kat_|stat_|hi_|prog_|keg_|uji_|hukum_|pesawat_|bejana_|sumber_|akibat_|santunan_|pelanggaran_|putusan_|korban_|tipe_|dokter_|paramedis_|riksa_|lainnya|ppns|paa|ptp|listrik|elevator|petir|kebakaran|konstruksi|klinik|lingkungan|kimia|makan|p2k3|keracunan|meninggal|pak|ahli_k3|pjk3|pmi|thr|pesangon)/.test(key));
 
             return (
               <div key={key} className={isLongText ? 'md:col-span-2 lg:col-span-3' : ''}>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{key.replace(/_/g, ' ')}</label>
-                {isLongText ? (
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
+                  {isKota ? 'Kabupaten/Kota' : key.replace(/_/g, ' ')}
+                </label>
+
+                {isKota ? (
+                  <select
+                    name="id_kota"
+                    value={value ?? ''}
+                    onChange={handleEditChange}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow"
+                  >
+                    {renderKabKotaOptions()}
+                  </select>
+                ) : isLongText ? (
                   <textarea
                     name={key}
                     value={value}
@@ -1496,9 +1636,7 @@ const App = () => {
                       <td className="px-5 py-3 text-center font-semibold text-purple-600">{totalPpns.toLocaleString()}</td>
                       <td className="px-5 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => toggleRow(`k1-${group.key}`)} className={`text-xs font-medium flex items-center justify-center gap-1 px-3 py-1.5 rounded transition ${isExpanded ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-600 hover:bg-sky-50'}`}>
-                            {isExpanded ? 'Tutup' : 'Detail'}
-                          </button>
+                          {renderDetailButton(`k1-${group.key}`)}
                           <button onClick={() => deleteK1Group(group)} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                         </div>
                       </td>
@@ -1568,7 +1706,7 @@ const App = () => {
       <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
         <div>
           <h3 className="font-semibold text-slate-800">Tabel Rekapitulasi Data K3</h3>
-          <p className="text-xs text-slate-500 mt-1">Objek K3 / Kelembagaan K3</p>
+          <p className="text-xs text-slate-500 mt-1">Klik "Detail" untuk melihat rincian Objek K3 per Kabupaten/Kota</p>
         </div>
         <button className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 active:scale-[0.98]">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -1582,26 +1720,61 @@ const App = () => {
               <th className="px-5 py-4">Bulan</th>
               <th className="px-5 py-4">Tahun</th>
               <th className="px-5 py-4">Kabupaten/Kota</th>
-              <th className="px-5 py-4 text-center">Pesawat Uap</th>
-              <th className="px-5 py-4 text-center">Bejana Tekan</th>
               <th className="px-5 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {dataK3.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-5 py-3">{item.bulan}</td>
-                <td className="px-5 py-3">{item.tahun}</td>
-                <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.pesawat_uap ?? 0)}</td>
-                <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.bejana_tekan ?? 0)}</td>
-                <td className="px-5 py-3 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    {renderRowActions(item, 'k3-objek-k3', fetchK3, getKotaName(item))}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {dataK3.map((item) => {
+              const isExpanded = expandedRow === `k3-${item.id}`;
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-5 py-3">{item.bulan}</td>
+                    <td className="px-5 py-3">{item.tahun}</td>
+                    <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-5 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k3-${item.id}`)}
+                        {renderRowActions(item, 'k3-objek-k3', fetchK3, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan="4" className="p-0 border-b border-slate-300">
+                        <div className="bg-slate-100 p-6 shadow-inner">
+                          <h4 className="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-300">Rincian Data: {getKotaName(item)} ({item.bulan} {item.tahun})</h4>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {k3FieldGroups.map((group) => {
+                              const colors = k3ColorClasses[group.color];
+                              return (
+                                <div key={group.title} className="bg-white p-4 rounded-md shadow-sm border border-slate-200">
+                                  <h5 className={`text-xs font-bold uppercase mb-3 flex items-center gap-2 ${colors.text}`}>
+                                    <div className={`w-2 h-2 rounded-full ${colors.dot}`}></div>
+                                    {group.title.replace(/^\d+\.\s*/, '')}
+                                  </h5>
+                                  <div className="space-y-2 text-sm">
+                                    {group.fields.map(([key, label]) => (
+                                      <div key={key} className="flex justify-between items-center">
+                                        <span className="text-slate-500">{label}</span>
+                                        <span className="font-medium">{Number(item[key] ?? 0).toLocaleString()}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1633,20 +1806,38 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK4.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-5 py-3">{item.bulan}</td>
-                <td className="px-5 py-3">{item.tahun}</td>
-                <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_perusahaan_bpjs ?? 0)}</td>
-                <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.tk_wni_bpjs ?? 0)}</td>
-                <td className="px-5 py-3 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    {renderRowActions(item, 'k4-jamsostek', fetchK4, getKotaName(item))}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {dataK4.map((item) => {
+              const isExpanded = expandedRow === `k4-${item.id}`;
+              const k4Fields = [
+                ['jml_perusahaan_bpjs', 'Jml Perusahaan BPJS'],
+                ['tk_wni_bpjs', 'TK WNI BPJS'],
+                ['tk_wna_bpjs', 'TK WNA BPJS'],
+                ['prog_jkn', 'Program JKN'],
+                ['prog_jkk_jkm', 'Program JKK & JKM'],
+                ['prog_jht', 'Program JHT'],
+                ['prog_jp', 'Program JP'],
+                ['prog_jkp', 'Program JKP'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-5 py-3">{item.bulan}</td>
+                    <td className="px-5 py-3">{item.tahun}</td>
+                    <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_perusahaan_bpjs ?? 0)}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-purple-600">{Number(item.tk_wni_bpjs ?? 0)}</td>
+                    <td className="px-5 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k4-${item.id}`)}
+                        {renderRowActions(item, 'k4-jamsostek', fetchK4, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(6, `Rincian Data K4: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k4Fields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1686,24 +1877,49 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK5.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td>
-                <td className="px-4 py-3">{item.tahun}</td>
-                <td className="px-4 py-3 font-medium text-slate-800">{item.jabatan_pengawas}</td>
-                <td className="px-4 py-3 text-center">{Number(item.jml_pengawas ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.keg_pertama ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.keg_berkala ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.keg_ulang ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.keg_khusus ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.uji_norma_kerja ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.uji_norma_k3 ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.hukum_nota_1 ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.hukum_nota_2 ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.hukum_lk ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k5-pemeriksaan', fetchK5, item.jabatan_pengawas)}</td>
-              </tr>
-            ))}
+            {dataK5.map((item) => {
+              const isExpanded = expandedRow === `k5-${item.id}`;
+              const k5Fields = [
+                ['jml_pengawas', 'Jml Pengawas'],
+                ['keg_pertama', 'Kegiatan Pertama'],
+                ['keg_berkala', 'Kegiatan Berkala'],
+                ['keg_ulang', 'Kegiatan Ulang'],
+                ['keg_khusus', 'Kegiatan Khusus'],
+                ['uji_norma_kerja', 'Uji Norma Kerja'],
+                ['uji_norma_k3', 'Uji Norma K3'],
+                ['hukum_nota_1', 'Hukum Nota I'],
+                ['hukum_nota_2', 'Hukum Nota II'],
+                ['hukum_lk', 'Hukum LK'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+              k5Fields.unshift(['Jabatan Pengawas', item.jabatan_pengawas]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td>
+                    <td className="px-4 py-3">{item.tahun}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{item.jabatan_pengawas}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.jml_pengawas ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.keg_pertama ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.keg_berkala ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.keg_ulang ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.keg_khusus ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.uji_norma_kerja ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.uji_norma_k3 ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.hukum_nota_1 ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.hukum_nota_2 ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.hukum_lk ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k5-${item.id}`)}
+                        {renderRowActions(item, 'k5-pemeriksaan', fetchK5, item.jabatan_pengawas)}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(14, `Rincian Data K5: ${item.jabatan_pengawas} (${item.bulan} ${item.tahun})`, k5Fields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1742,18 +1958,39 @@ const App = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredDataK6.map((item) => (
-                <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                  <td className="px-5 py-3">{item.bulan}</td>
-                  <td className="px-5 py-3">{item.tahun}</td>
-                  <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                  <td className="px-5 py-3 font-medium text-slate-700">{item.kode_kbli ?? item.kbli?.kode_kbli}</td>
-                  <td className="px-5 py-3">{item.jenis_kegiatan}</td>
-                  <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_pelaksanaan ?? 0)}</td>
-                  <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
-                  <td className="px-5 py-3 text-center">{renderRowActions(item, 'k6-kegiatan-kbli', fetchK6, getKotaName(item))}</td>
-                </tr>
-              ))}
+              {filteredDataK6.map((item) => {
+                const isExpanded = expandedRow === `k6-${item.id}`;
+                const kodeKbli = item.kode_kbli ?? item.kbli?.kode_kbli;
+                const keteranganKbli = kbliOptions.find((k) => k.kode === kodeKbli)?.keterangan ?? '-';
+                const k6Fields = [
+                  ['Kode KBLI', kodeKbli ?? '-'],
+                  ['Keterangan KBLI', keteranganKbli],
+                  ['Jenis Kegiatan', item.jenis_kegiatan ?? '-'],
+                  ['Jml Pelaksanaan', Number(item.jml_pelaksanaan ?? 0).toLocaleString()],
+                  ['Keterangan', item.keterangan ?? '-'],
+                ];
+
+                return (
+                  <React.Fragment key={item.id}>
+                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                      <td className="px-5 py-3">{item.bulan}</td>
+                      <td className="px-5 py-3">{item.tahun}</td>
+                      <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                      <td className="px-5 py-3 font-medium text-slate-700">{kodeKbli}</td>
+                      <td className="px-5 py-3">{item.jenis_kegiatan}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-sky-600">{Number(item.jml_pelaksanaan ?? 0)}</td>
+                      <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
+                      <td className="px-5 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {renderDetailButton(`k6-${item.id}`)}
+                          {renderRowActions(item, 'k6-kegiatan-kbli', fetchK6, getKotaName(item))}
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && renderDetailPanel(8, `Rincian Data ${getActiveTitle()}: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k6Fields)}
+                  </React.Fragment>
+                );
+              })}
               {filteredDataK6.length === 0 && (
                 <tr>
                   <td colSpan="8" className="px-5 py-8 text-center text-slate-500">Belum ada data untuk {getActiveTitle()}.</td>
@@ -1803,28 +2040,56 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK7.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td>
-                <td className="px-4 py-3">{item.tahun}</td>
-                <td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.pesawat_uap ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.bejana_tekan ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.paa ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.ptp ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.listrik ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.elevator ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.petir ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.kebakaran ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.konstruksi ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.klinik ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.lingkungan ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.kimia ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.makan ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.p2k3 ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k7-perizinan', fetchK7, getKotaName(item))}</td>
-              </tr>
-            ))}
+            {dataK7.map((item) => {
+              const isExpanded = expandedRow === `k7-${item.id}`;
+              const k7Fields = [
+                ['pesawat_uap', 'Pesawat Uap'],
+                ['bejana_tekan', 'Bejana Tekan'],
+                ['paa', 'PAA (Pesawat Angkat Angkut)'],
+                ['ptp', 'PTP (Pesawat Tenaga Produksi)'],
+                ['listrik', 'Instalasi Listrik'],
+                ['elevator', 'Elevator/Eskalator'],
+                ['petir', 'Penyalur Petir'],
+                ['kebakaran', 'Proteksi Kebakaran'],
+                ['konstruksi', 'Konstruksi Bangunan'],
+                ['klinik', 'Klinik Perusahaan'],
+                ['lingkungan', 'Lingkungan Kerja'],
+                ['kimia', 'Bahan Kimia'],
+                ['makan', 'Pengelolaan Makanan'],
+                ['p2k3', 'P2K3'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td>
+                    <td className="px-4 py-3">{item.tahun}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.pesawat_uap ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.bejana_tekan ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.paa ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.ptp ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.listrik ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.elevator ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.petir ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.kebakaran ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.konstruksi ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.klinik ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.lingkungan ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.kimia ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.makan ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.p2k3 ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k7-${item.id}`)}
+                        {renderRowActions(item, 'k7-perizinan', fetchK7, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(17, `Rincian Data K7: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k7Fields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1904,36 +2169,45 @@ const App = () => {
         <p className="text-xs text-slate-500 mt-1">Objek K3 / Kelembagaan K3</p>
       </div>
       <form className="p-6 space-y-8" onSubmit={handleSubmitK3}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
-            <select name="bulan" value={formDataK3.bulan} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
-              <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
-              <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
-              <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
-              <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
-            <input name="tahun" type="number" value={formDataK3.tahun} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
-            <select name="id_kota" value={formDataK3.id_kota} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">{renderKabKotaOptions()}</select>
-          </div>
-        </div>
-
         <section>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['pesawat_uap','bejana_tekan','pesawat_angkat','pesawat_tenaga','listrik','eskalator','cegah_kebakaran','kesehatan_kerja','konstruksi','lingkungan_kerja','bahan_kimia','ruang_terbatas','sarana_k3','personil_k3','p2k3','perancah'].map((key) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{key.replace(/_/g, ' ')}</label>
-                <input name={key} type="number" value={formDataK3[key]} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
-              </div>
-            ))}
+          <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">1. Informasi Umum</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
+              <select name="bulan" value={formDataK3.bulan} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
+                <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
+                <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
+                <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
+                <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
+              <input name="tahun" type="number" value={formDataK3.tahun} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
+              <select name="id_kota" value={formDataK3.id_kota} onChange={handleChangeK3} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">{renderKabKotaOptions()}</select>
+            </div>
           </div>
         </section>
+
+        {k3FieldGroups.map((group) => {
+          const colors = k3ColorClasses[group.color];
+          return (
+            <section key={group.title}>
+              <h4 className="text-sm font-bold text-sky-700 mb-4 pb-2 border-b-2 border-sky-100 uppercase tracking-wide">{group.title}</h4>
+              <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg ${colors.box}`}>
+                {group.fields.map(([key, label]) => (
+                  <div key={key}>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
+                    <input name={key} type="number" min="0" value={formDataK3[key]} onChange={handleChangeK3} placeholder="0" className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onClick={() => setActiveTab('lihat')} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Batal</button>
@@ -2214,15 +2488,34 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK8A.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.jml_kasus ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.keracunan ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.meninggal ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.dugaan_pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.korban_total ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.tipe_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.tipe_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.tipe_c ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k8a-kasus-kecelakaan', fetchK8A, getKotaName(item))}</td>
-              </tr>
-            ))}
+            {dataK8A.map((item) => {
+              const isExpanded = expandedRow === `k8a-${item.id}`;
+              const k8aFields = [
+                ['jml_kasus', 'Jml Kasus'], ['keracunan', 'Keracunan'], ['meninggal', 'Meninggal'],
+                ['dugaan_pak', 'Dugaan PAK'], ['pak', 'PAK'], ['korban_total', 'Korban Total'],
+                ['tipe_a', 'Tipe A'], ['tipe_b', 'Tipe B'], ['tipe_c', 'Tipe C'], ['tipe_d', 'Tipe D'],
+                ['tipe_e', 'Tipe E'], ['tipe_f', 'Tipe F'], ['tipe_g', 'Tipe G'], ['tipe_h', 'Tipe H'],
+                ['tipe_i', 'Tipe I'], ['tipe_j', 'Tipe J'], ['tipe_k', 'Tipe K'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.jml_kasus ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.keracunan ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.meninggal ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.dugaan_pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pak ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.korban_total ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.tipe_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.tipe_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.tipe_c ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k8a-${item.id}`)}
+                        {renderRowActions(item, 'k8a-kasus-kecelakaan', fetchK8A, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(13, `Rincian Data K8A: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k8aFields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2246,14 +2539,29 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK8B.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.sumber_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_c ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.sumber_d ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_e ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_f ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k8b-sumber-bahaya', fetchK8B, getKotaName(item))}</td>
-              </tr>
-            ))}
+            {dataK8B.map((item) => {
+              const isExpanded = expandedRow === `k8b-${item.id}`;
+              const k8bFields = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u']
+                .map((suffix) => [`sumber_${suffix}`, `Sumber ${suffix.toUpperCase()}`])
+                .map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.sumber_a ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_b ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_c ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.sumber_d ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_e ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sumber_f ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k8b-${item.id}`)}
+                        {renderRowActions(item, 'k8b-sumber-bahaya', fetchK8B, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(10, `Rincian Data K8B: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k8bFields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2277,14 +2585,32 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK8C.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.akibat_sembuh ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_stmb ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_cacat ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.akibat_meninggal ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_berkala ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_sekaligus ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k8c-akibat-santunan', fetchK8C, getKotaName(item))}</td>
-              </tr>
-            ))}
+            {dataK8C.map((item) => {
+              const isExpanded = expandedRow === `k8c-${item.id}`;
+              const k8cFields = [
+                ['akibat_sembuh', 'Akibat Sembuh'], ['akibat_stmb', 'Akibat STMB'], ['akibat_cacat', 'Akibat Cacat'],
+                ['akibat_meninggal', 'Akibat Meninggal'], ['santunan_berkala', 'Santunan Berkala'], ['santunan_sekaligus', 'Santunan Sekaligus'],
+                ['santunan_pendidikan', 'Santunan Pendidikan'], ['santunan_kembali_kerja', 'Santunan Kembali Kerja'],
+                ['kerugian_ekonomi', 'Kerugian Ekonomi'], ['jam_kerja_hilang', 'Jam Kerja Hilang'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.akibat_sembuh ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_stmb ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.akibat_cacat ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.akibat_meninggal ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_berkala ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.santunan_sekaligus ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k8c-${item.id}`)}
+                        {renderRowActions(item, 'k8c-akibat-santunan', fetchK8C, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(10, `Rincian Data K8C: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k8cFields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2308,14 +2634,37 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK9A.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.jml_perusahaan_melanggar ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.jml_di_nota ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pelanggaran_wlkp ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.pelanggaran_wkwi ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.penggunaan_tka ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pmi ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k9a-pelanggaran-kerja', fetchK9A, getKotaName(item))}</td>
-              </tr>
-            ))}
+            {dataK9A.map((item) => {
+              const isExpanded = expandedRow === `k9a-${item.id}`;
+              const k9aFields = [
+                ['jml_perusahaan_melanggar', 'Jml Perusahaan Melanggar'], ['jml_di_nota', 'Jml di Nota'],
+                ['pelanggaran_wlkp', 'Pelanggaran WLKP'], ['pelanggaran_wkwi', 'Pelanggaran WKWI'],
+                ['penggunaan_tka', 'Penggunaan TKA'], ['pmi', 'PMI'],
+                ['upah_minimum', 'Upah Minimum'], ['upah_tidak_dibayar', 'Upah Tidak Dibayar'], ['upah_lembur', 'Upah Lembur'],
+                ['kompensasi_pkwt', 'Kompensasi PKWT'], ['pesangon', 'Pesangon'], ['thr', 'THR'],
+                ['pekerja_anak', 'Pekerja Anak'], ['cuti_tahunan', 'Cuti Tahunan'], ['cuti_haid', 'Cuti Haid'],
+                ['pp_kb', 'PP/KB'], ['pwbd_bpjs_kes', 'PWBD BPJS Kesehatan'], ['pwbd_bpjs_tk', 'PWBD BPJS TK'],
+                ['pds_tk', 'PDS TK'], ['pds_upah', 'PDS Upah'], ['pds_prog', 'PDS Program'],
+                ['prshn_mnggk', 'Perusahaan Mangkir'], ['lain_lain', 'Lain-lain'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.jml_perusahaan_melanggar ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.jml_di_nota ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pelanggaran_wlkp ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.pelanggaran_wkwi ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.penggunaan_tka ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.pmi ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k9a-${item.id}`)}
+                        {renderRowActions(item, 'k9a-pelanggaran-kerja', fetchK9A, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(10, `Rincian Data K9A: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k9aFields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2339,14 +2688,33 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK9B.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.pelanggaran_p2k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.ahli_k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.personil_k3_lainnya ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{Number(item.pjk3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.unit_p3k ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sarana_makan ?? 0)}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k9b-pelanggaran-k3', fetchK9B, getKotaName(item))}</td>
-              </tr>
-            ))}
+            {dataK9B.map((item) => {
+              const isExpanded = expandedRow === `k9b-${item.id}`;
+              const k9bFields = [
+                ['pelanggaran_p2k3', 'Pelanggaran P2K3'], ['ahli_k3', 'Ahli K3'], ['personil_k3_lainnya', 'Personil K3 Lainnya'],
+                ['pjk3', 'PJK3'], ['unit_p3k', 'Unit P3K'], ['sarana_makan', 'Sarana Makan'],
+                ['pengendalian_b3', 'Pengendalian B3'], ['dokter_perusahaan', 'Dokter Perusahaan'], ['paramedis_perusahaan', 'Paramedis Perusahaan'],
+                ['dokter_pktk', 'Dokter PKTK'], ['riksa_awal', 'Pemeriksaan Awal'], ['riksa_berkala', 'Pemeriksaan Berkala'],
+                ['riksa_khusus', 'Pemeriksaan Khusus'], ['lainnya', 'Lainnya'],
+              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.pelanggaran_p2k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.ahli_k3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.personil_k3_lainnya ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">{Number(item.pjk3 ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.unit_p3k ?? 0)}</td><td className="px-4 py-3 text-center">{Number(item.sarana_makan ?? 0)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k9b-${item.id}`)}
+                        {renderRowActions(item, 'k9b-pelanggaran-k3', fetchK9B, getKotaName(item))}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(10, `Rincian Data K9B: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k9bFields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2370,14 +2738,36 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {dataK10.map((item) => (
-              <tr key={item.id} className="border-b bg-white hover:bg-slate-50">
-                <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                <td className="px-4 py-3 font-medium">{item.no_laporan}</td><td className="px-4 py-3">{item.dugaan_pelanggaran}</td><td className="px-4 py-3 text-center">{item.status_selesai ?? '-'}</td>
-                <td className="px-4 py-3 text-center">{item.proses ?? '-'}</td><td className="px-4 py-3 text-center">{Number(item.putusan_denda ?? 0)}</td><td className="px-4 py-3 text-center">{item.putusan_kurungan ?? '-'}</td>
-                <td className="px-4 py-3 text-center">{renderRowActions(item, 'k10-penyidikan', fetchK10, item.no_laporan)}</td>
-              </tr>
-            ))}
+            {dataK10.map((item) => {
+              const isExpanded = expandedRow === `k10-${item.id}`;
+              const k10Fields = [
+                ['Kabupaten/Kota', getKotaName(item)],
+                ['No Laporan', item.no_laporan ?? '-'],
+                ['Dugaan Pelanggaran', item.dugaan_pelanggaran ?? '-'],
+                ['No SPT', item.no_spt ?? '-'],
+                ['Status', item.status_selesai ?? '-'],
+                ['Proses', item.proses ?? '-'],
+                ['Putusan Denda', Number(item.putusan_denda ?? 0).toLocaleString()],
+                ['Putusan Kurungan', item.putusan_kurungan ?? '-'],
+              ];
+
+              return (
+                <React.Fragment key={item.id}>
+                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-sky-50/40' : 'bg-white hover:bg-slate-50'}`}>
+                    <td className="px-4 py-3">{item.bulan}</td><td className="px-4 py-3">{item.tahun}</td><td className="px-4 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
+                    <td className="px-4 py-3 font-medium">{item.no_laporan}</td><td className="px-4 py-3">{item.dugaan_pelanggaran}</td><td className="px-4 py-3 text-center">{item.status_selesai ?? '-'}</td>
+                    <td className="px-4 py-3 text-center">{item.proses ?? '-'}</td><td className="px-4 py-3 text-center">{Number(item.putusan_denda ?? 0)}</td><td className="px-4 py-3 text-center">{item.putusan_kurungan ?? '-'}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {renderDetailButton(`k10-${item.id}`)}
+                        {renderRowActions(item, 'k10-penyidikan', fetchK10, item.no_laporan)}
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && renderDetailPanel(10, `Rincian Data K10: ${item.no_laporan ?? getKotaName(item)} (${item.bulan} ${item.tahun})`, k10Fields)}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2539,9 +2929,10 @@ const App = () => {
 
   const handleChangeK3 = (e) => {
     const { name, value } = e.target;
+    const numericFields = ['tahun', 'id_kota', ...k3FieldGroups.flatMap((group) => group.fields.map(([key]) => key))];
     setFormDataK3(prev => ({
       ...prev,
-      [name]: ['tahun', 'id_kota', 'pesawat_uap', 'bejana_tekan', 'pesawat_angkat', 'pesawat_tenaga', 'listrik', 'eskalator', 'cegah_kebakaran', 'kesehatan_kerja', 'konstruksi', 'lingkungan_kerja', 'bahan_kimia', 'ruang_terbatas', 'sarana_k3', 'personil_k3', 'p2k3', 'perancah'].includes(name) ? numericValue(value) : value,
+      [name]: numericFields.includes(name) ? numericValue(value) : value,
     }));
   };
 
