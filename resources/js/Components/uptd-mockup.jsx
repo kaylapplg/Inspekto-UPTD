@@ -1106,7 +1106,282 @@ const App = () => {
     </aside>
   );
 
-  const renderEditPage = () => (
+  const renderEditTextInput = (name, label, type = 'number', extraClass = '') => (
+    <div className={extraClass}>
+      <label className="block text-sm font-medium text-slate-600 mb-1.5">{label}</label>
+      <input
+        name={name}
+        type={type}
+        min={type === 'number' ? '0' : undefined}
+        value={editForm[name] ?? ''}
+        onChange={handleEditChange}
+        placeholder={type === 'number' ? '0' : undefined}
+        className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      />
+    </div>
+  );
+
+  const renderEditMonthSelect = () => (
+    <div>
+      <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
+      <select name="bulan" value={editForm.bulan ?? ''} onChange={handleEditChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
+        <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
+        <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
+        <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
+        <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
+      </select>
+    </div>
+  );
+
+  const renderEditKotaSelect = () => (
+    <div>
+      <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
+      <select name="id_kota" value={editForm.id_kota ?? ''} onChange={handleEditChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
+        {renderKabKotaOptions()}
+      </select>
+    </div>
+  );
+
+  const closeEditPage = () => {
+    setEditData(null);
+    setEditForm({});
+    setActiveMenu(lastReportMenu || 'K1');
+  };
+
+  const renderEditActions = (submitLabel = 'Simpan Perubahan') => (
+    <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+      <button type="button" onClick={closeEditPage} className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Kembali</button>
+      <button type="submit" className="px-6 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2540] shadow-sm hover:shadow-md transition-all active:scale-[0.98]">{submitLabel}</button>
+    </div>
+  );
+
+  const renderStructuredEditPage = () => {
+    if (!editData) return null;
+
+    if (editData.api === 'k1-pengawas') {
+      const jabatan = editForm.jabatan || 'Pertama';
+
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
+          <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <h3 className="font-semibold text-slate-800">Form Edit Data K1</h3>
+            <p className="text-xs text-slate-500 mt-1">Pengawas & Ketenagakerjaan</p>
+          </div>
+          <form className="p-6 space-y-6" onSubmit={saveEdit}>
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {renderEditMonthSelect()}
+              {renderEditTextInput('tahun', 'Tahun')}
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Jabatan</label>
+                <select name="jabatan" value={editForm.jabatan ?? ''} onChange={handleEditChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                  {k1JabatanOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div className="overflow-x-auto w-full pb-4">
+                <div className="border border-slate-200 rounded-lg">
+                  <table className="min-w-[1180px] w-full text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left font-semibold border-r border-slate-200">Jabatan</th>
+                        {k1NumberFields.map((field) => (
+                          <th key={field.key} className="px-3 py-3 text-center font-semibold whitespace-nowrap">{field.label}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      <tr className="hover:bg-slate-50">
+                        <td className="sticky left-0 z-10 bg-white px-4 py-3 font-semibold text-slate-800 border-r border-slate-200">{jabatan}</td>
+                        {k1NumberFields.map((field) => (
+                          <td key={`${jabatan}-${field.key}`} className="px-2 py-3">
+                            <input
+                              name={field.key}
+                              type="number"
+                              min="0"
+                              value={editForm[field.key] ?? 0}
+                              onChange={handleEditChange}
+                              className="w-20 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            {renderEditActions()}
+          </form>
+        </div>
+      );
+    }
+
+    if (editData.api === 'k2-objek-pengawasan') {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
+          <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <h3 className="font-semibold text-slate-800">Form Edit Data K2</h3>
+            <p className="text-xs text-slate-500 mt-1">Pastikan data yang diedit sesuai dengan format berkas laporan / excel uptd.xlsx</p>
+          </div>
+          <form className="p-6 space-y-8" onSubmit={saveEdit}>
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {renderEditMonthSelect()}
+                {renderEditTextInput('tahun', 'Tahun')}
+                {renderEditKotaSelect()}
+                {renderEditTextInput('jml_perusahaan', 'Total Jumlah Perusahaan')}
+              </div>
+            </section>
+
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">2. Jumlah Tenaga Kerja</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[#071A2F]/5 p-4 rounded-lg border border-[#071A2F]/10">
+                  <p className="font-semibold text-[#071A2F] mb-3 text-sm">Warga Negara Indonesia (WNI)</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {renderEditTextInput('tk_wni_l', 'Laki-Laki (L)')}
+                    {renderEditTextInput('tk_wni_p', 'Perempuan (P)')}
+                  </div>
+                </div>
+                <div className="bg-[#071A2F]/5 p-4 rounded-lg border border-[#071A2F]/10">
+                  <p className="font-semibold text-[#071A2F] mb-3 text-sm">Warga Negara Asing (WNA)</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {renderEditTextInput('tk_wna_l', 'Laki-Laki (L)')}
+                    {renderEditTextInput('tk_wna_p', 'Perempuan (P)')}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <section>
+                <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">3. Kategori Perusahaan</h4>
+                <div className="grid grid-cols-2 gap-4 bg-yellow-50/30 p-4 border border-yellow-100 rounded-lg">
+                  {renderEditTextInput('kat_mikro', 'Mikro')}
+                  {renderEditTextInput('kat_kecil', 'Kecil')}
+                  {renderEditTextInput('kat_menengah', 'Menengah')}
+                  {renderEditTextInput('kat_besar', 'Besar')}
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">4. Kelembagaan & Hub. Industrial</h4>
+                <div className="grid grid-cols-2 gap-4 bg-green-50/30 p-4 border border-green-100 rounded-lg">
+                  {renderEditTextInput('hi_pp', 'PP')}
+                  {renderEditTextInput('hi_pkb', 'PKB')}
+                  {renderEditTextInput('hi_sp_sb', 'SP/SB')}
+                  {renderEditTextInput('hi_tripartit', 'Tripartit')}
+                </div>
+              </section>
+            </div>
+
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">5. Status Perusahaan & Penghargaan</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 border border-slate-200 rounded-lg">
+                {renderEditTextInput('stat_swasta', 'Swasta')}
+                {renderEditTextInput('stat_persero', 'Persero')}
+                {renderEditTextInput('stat_perum', 'Perum')}
+                {renderEditTextInput('stat_bumd', 'BUMD')}
+                {renderEditTextInput('stat_yayasan', 'Yayasan')}
+                {renderEditTextInput('stat_koperasi', 'Koperasi')}
+                {renderEditTextInput('stat_perseorangan', 'Perseorangan')}
+                {renderEditTextInput('stat_joint', 'Joint')}
+                <div className="md:col-span-2 lg:col-span-4">
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Penghargaan K3</label>
+                  <textarea name="penghargaan_k3" value={editForm.penghargaan_k3 ?? ''} onChange={handleEditChange} rows="3" className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+                </div>
+              </div>
+            </section>
+
+            {renderEditActions()}
+          </form>
+        </div>
+      );
+    }
+
+    if (editData.api === 'k3-objek-k3') {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
+          <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <h3 className="font-semibold text-slate-800">Form Edit Data K3</h3>
+            <p className="text-xs text-slate-500 mt-1">Objek K3 / Kelembagaan K3</p>
+          </div>
+          <form className="p-6 space-y-8" onSubmit={saveEdit}>
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {renderEditMonthSelect()}
+                {renderEditTextInput('tahun', 'Tahun')}
+                {renderEditKotaSelect()}
+              </div>
+            </section>
+
+            {k3FieldGroups.map((group) => {
+              const colors = k3ColorClasses[group.color];
+              return (
+                <section key={group.title}>
+                  <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">{group.title}</h4>
+                  <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg ${colors.box}`}>
+                    {group.fields.map(([key, label]) => renderEditTextInput(key, label))}
+                  </div>
+                </section>
+              );
+            })}
+
+            {renderEditActions()}
+          </form>
+        </div>
+      );
+    }
+
+    if (editData.api === 'k4-jamsostek') {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
+          <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <h3 className="font-semibold text-slate-800">Form Edit Data K4</h3>
+            <p className="text-xs text-slate-500 mt-1">Jamsostek / BPJS Ketenagakerjaan</p>
+          </div>
+          <form className="p-6 space-y-8" onSubmit={saveEdit}>
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {renderEditMonthSelect()}
+                {renderEditTextInput('tahun', 'Tahun')}
+                {renderEditKotaSelect()}
+              </div>
+            </section>
+
+            {k4FieldGroups.map((group) => {
+              const colors = k3ColorClasses[group.color];
+              return (
+                <section key={group.title}>
+                  <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">{group.title}</h4>
+                  <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg ${colors.box}`}>
+                    {group.fields.map(([key, label]) => renderEditTextInput(key, label))}
+                  </div>
+                </section>
+              );
+            })}
+
+            {renderEditActions()}
+          </form>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const renderEditPage = () => {
+    const structuredEditPage = renderStructuredEditPage();
+
+    if (structuredEditPage) return structuredEditPage;
+
+    return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
       <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/60">
         <h3 className="text-lg font-bold text-slate-800">Edit Data</h3>
@@ -1160,11 +1435,7 @@ const App = () => {
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
           <button
             type="button"
-            onClick={() => {
-              setEditData(null);
-              setEditForm({});
-              setActiveMenu(lastReportMenu || 'K1');
-            }}
+            onClick={closeEditPage}
             className="px-5 py-2 text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition"
           >
             Kembali
@@ -1178,7 +1449,8 @@ const App = () => {
         </div>
       </form>
     </div>
-  );
+    );
+  };
 
   const renderProfilePage = () => (
     <div className="space-y-6">
