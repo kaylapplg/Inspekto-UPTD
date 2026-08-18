@@ -854,6 +854,30 @@ const App = () => {
     }));
   };
 
+  const openK6GroupEditPage = (group) => {
+    if (activeMenu !== 'EDIT') setLastReportMenu(activeMenu);
+    setEditData({
+      type: 'k6-group',
+      api: 'k6-kegiatan-kbli',
+      name: `${group.bulan} ${group.tahun}`,
+      groupItems: group.items || [],
+      jenisKegiatan: group.items?.[0]?.jenis_kegiatan ?? k6JenisKegiatanMap[activeMenu] ?? k6JenisKegiatanMap.K6,
+    });
+    setEditForm({
+      bulan: group.bulan ?? '',
+      tahun: group.tahun ?? '',
+      id_kota: group.id_kota ?? '',
+      jml_pelaksanaan_global: Number(group.jml_pelaksanaan ?? 0),
+      keterangan_global: group.keterangan ?? '',
+      data_kbli: kbliOptions.reduce((values, item) => ({ ...values, [item.kode]: Number(group.data_kbli?.[item.kode] ?? 0) }), {}),
+    });
+    setActiveMenu('EDIT');
+  };
+
+  const handleEditK6KbliChange = (kode, value) => {
+    setEditForm((prev) => ({ ...prev, data_kbli: { ...prev.data_kbli, [kode]: numericValue(value) } }));
+  };
+
   const openK5GroupEditPage = (group) => {
     if (activeMenu !== 'EDIT') {
       setLastReportMenu(activeMenu);
@@ -940,6 +964,38 @@ const App = () => {
       return;
     }
 
+    if (editData.type === 'k6-group') {
+      try {
+        const existingByKbli = (editData.groupItems || []).reduce((map, item) => {
+          const kode = item.kode_kbli ?? item.kbli?.kode_kbli;
+          if (kode) map[kode] = item;
+          return map;
+        }, {});
+        const responses = await Promise.all(Object.entries(editForm.data_kbli || {}).filter(([kode]) => existingByKbli[kode]).map(async ([kodeKbli, nilai]) => {
+          const existing = existingByKbli[kodeKbli];
+          return fetch(`http://127.0.0.1:8000/api/k6-kegiatan-kbli/${existing.id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              bulan: editForm.bulan,
+              tahun: editForm.tahun,
+              id_kota: editForm.id_kota,
+              kode_kbli: kodeKbli,
+              jenis_kegiatan: editData.jenisKegiatan,
+              nilai: Number(nilai ?? 0),
+              jml_pelaksanaan: Number(editForm.jml_pelaksanaan_global ?? 0),
+              keterangan: editForm.keterangan_global ?? '',
+            }),
+          });
+        }));
+        if (responses.some((response) => !response.ok)) { alert('Gagal menyimpan perubahan data K6'); return; }
+        alert('Perubahan data K6 berhasil disimpan');
+        fetchK6(); setEditData(null); setEditForm({}); setActiveMenu(lastReportMenu || 'K6');
+      } catch (error) {
+        console.error(error); alert('Terjadi kesalahan saat menyimpan perubahan data K6');
+      }
+      return;
+    }
+
     if (editData.type === 'k5-group') {
       try {
         const responses = await Promise.all(editData.groupItems.map((item) => {
@@ -1017,6 +1073,49 @@ const App = () => {
       </button>
     );
   };
+
+  const renderDetailPanelK6 = (colSpan, title, group) => (
+    <tr>
+      <td colSpan={colSpan} className="p-0 border-b border-slate-300">
+        <div className="bg-slate-50 p-5 md:p-6 shadow-inner">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+              <div>
+                <h5 className="text-sm font-semibold text-slate-800">Rincian KBLI</h5>
+                <p className="text-xs text-slate-500 mt-0.5">Nilai kegiatan berdasarkan kode KBLI</p>
+              </div>
+              <span className="text-xs text-slate-500">{kbliOptions.length} kode</span>
+            </div>
+
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              {kbliOptions.map((kbli) => (
+                <div key={kbli.kode} className="rounded-lg border border-slate-200 p-3 hover:border-slate-300 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-md bg-[#071A2F] text-white text-xs font-bold">{kbli.kode}</span>
+                        <span className="text-xs font-semibold text-slate-500">KBLI</span>
+                      </div>
+                      <p className="text-xs leading-5 text-slate-600">{kbli.keterangan}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-400">Nilai</p>
+                      <p className="text-lg font-bold text-[#071A2F]">{Number(group.data_kbli[kbli.kode] ?? 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Keterangan Lengkap</p>
+            <p className="text-sm text-slate-700 leading-6 whitespace-pre-line">{group.keterangan ?? '-'}</p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
 
   const renderDetailPanel = (colSpan, title, fields) => (
     <tr>
@@ -1385,6 +1484,55 @@ const App = () => {
               </div>
             </section>
 
+            {renderEditActions('Simpan Perubahan')}
+          </form>
+        </div>
+      );
+    }
+
+    if (editData.type === 'k6-group') {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
+          <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <h3 className="font-semibold text-slate-800">Form Edit Data K6</h3>
+            <p className="text-xs text-slate-500 mt-1">Format edit disamakan dengan Form Input K6</p>
+          </div>
+          <form className="p-6 space-y-6" onSubmit={saveEdit}>
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {renderEditMonthSelect()}
+              {renderEditTextInput('tahun', 'Tahun')}
+              {renderEditKotaSelect()}
+            </section>
+            <section>
+              <div className="overflow-x-auto w-full pb-4">
+                <div className="border border-slate-200 rounded-lg">
+                  <table className="min-w-[720px] w-full text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                      <tr><th className="px-4 py-3 text-left font-semibold w-24">Kode KBLI</th><th className="px-4 py-3 text-left font-semibold">Keterangan KBLI</th><th className="px-4 py-3 text-center font-semibold w-40">Nilai</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {kbliOptions.map((item) => (
+                        <tr key={item.kode} className="hover:bg-slate-50">
+                          <td className="px-4 py-3 font-semibold text-slate-800">{item.kode}</td>
+                          <td className="px-4 py-3 text-slate-700">{item.keterangan}</td>
+                          <td className="px-4 py-3"><input type="number" min="0" value={editForm.data_kbli?.[item.kode] ?? 0} onChange={(e) => handleEditK6KbliChange(item.kode, e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow text-center focus:outline-none focus:ring-2 focus:ring-yellow-400" /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Jumlah Pelaksanaan Total</label>
+                <input name="jml_pelaksanaan_global" type="number" min="0" value={editForm.jml_pelaksanaan_global ?? 0} onChange={handleEditChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+              </div>
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Keterangan Laporan</label>
+                <textarea name="keterangan_global" rows="3" value={editForm.keterangan_global ?? ''} onChange={handleEditChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+              </div>
+            </section>
             {renderEditActions('Simpan Perubahan')}
           </form>
         </div>
@@ -2641,16 +2789,41 @@ const App = () => {
   };
 
   const renderViewDataK6 = () => {
-    const filteredDataK6 = dataK6.filter((item) => (
-      activeMenu === 'K6' || String(item.jenis_kegiatan ?? '').includes(activeMenu)
-    ));
+    const filteredDataK6 = dataK6.filter((item) => {
+      if (activeMenu === 'K6') return true;
+      const jenisKegiatan = k6JenisKegiatanMap[activeMenu];
+      return !jenisKegiatan || String(item.jenis_kegiatan ?? '') === jenisKegiatan;
+    });
+
+    const groupedK6 = Object.values(filteredDataK6.reduce((groups, item) => {
+      const key = `${item.bulan ?? ''}|${item.tahun ?? ''}|${item.id_kota ?? getKotaName(item)}`;
+      if (!groups[key]) {
+        groups[key] = {
+          key,
+          bulan: item.bulan,
+          tahun: item.tahun,
+          id_kota: item.id_kota,
+          kota: getKotaName(item),
+          items: [],
+          data_kbli: createK6KbliData(),
+          jml_pelaksanaan: Number(item.jml_pelaksanaan ?? 0),
+          keterangan: item.keterangan ?? '-',
+        };
+      }
+      groups[key].items.push(item);
+      const kode = item.kode_kbli ?? item.kbli?.kode_kbli;
+      if (kode) groups[key].data_kbli[kode] = Number(item.nilai ?? 0);
+      if (item.keterangan) groups[key].keterangan = item.keterangan;
+      if (item.jml_pelaksanaan != null) groups[key].jml_pelaksanaan = Number(item.jml_pelaksanaan ?? 0);
+      return groups;
+    }, {}));
 
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
           <div>
             <h3 className="font-semibold text-slate-800">Tabel Rekapitulasi Data {getActiveTitle()}</h3>
-            <p className="text-xs text-slate-500 mt-1">Kegiatan KBLI / Pemetaan Program</p>
+            <p className="text-xs text-slate-500 mt-1">Rekap kegiatan KBLI</p>
           </div>
           <button className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 active:scale-[0.98]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -2664,51 +2837,63 @@ const App = () => {
                 <th className="px-5 py-4">Bulan</th>
                 <th className="px-5 py-4">Tahun</th>
                 <th className="px-5 py-4">Kabupaten/Kota</th>
-                <th className="px-5 py-4">KBLI</th>
-                <th className="px-5 py-4">Jenis Kegiatan</th>
-                <th className="px-5 py-4 text-center">Jml Pelaksanaan</th>
+                <th className="px-5 py-4 text-center">Jumlah Pelaksanaan</th>
                 <th className="px-5 py-4">Keterangan</th>
                 <th className="px-5 py-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {filteredDataK6.map((item) => {
-                const isExpanded = expandedRow === `k6-${item.id}`;
-                const kodeKbli = item.kode_kbli ?? item.kbli?.kode_kbli;
-                const keteranganKbli = kbliOptions.find((k) => k.kode === kodeKbli)?.keterangan ?? '-';
+              {groupedK6.map((group) => {
+                const rowId = `k6-${group.key}`;
+                const isExpanded = expandedRow === rowId;
                 const k6Fields = [
-                  ['Kode KBLI', kodeKbli ?? '-'],
-                  ['Keterangan KBLI', keteranganKbli],
-                  ['Jenis Kegiatan', item.jenis_kegiatan ?? '-'],
-                  ['Jml Pelaksanaan', Number(item.jml_pelaksanaan ?? 0).toLocaleString()],
-                  ['Keterangan', item.keterangan ?? '-'],
+                  ['Bulan', group.bulan ?? '-'],
+                  ['Tahun', group.tahun ?? '-'],
+                  ['Kabupaten/Kota', group.kota ?? '-'],
+                  ['Jumlah Pelaksanaan Total', Number(group.jml_pelaksanaan ?? 0).toLocaleString()],
+                  ['Keterangan', group.keterangan ?? '-'],
+                  ...kbliOptions.flatMap((kbli) => ([
+                    [`KBLI ${kbli.kode}`, kbli.keterangan],
+                    [`Nilai KBLI ${kbli.kode}`, Number(group.data_kbli[kbli.kode] ?? 0).toLocaleString()],
+                  ])),
                 ];
-
                 return (
-                  <React.Fragment key={item.id}>
+                  <React.Fragment key={rowId}>
                     <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
-                      <td className="px-5 py-3">{item.bulan}</td>
-                      <td className="px-5 py-3">{item.tahun}</td>
-                      <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
-                      <td className="px-5 py-3 font-medium text-slate-700">{kodeKbli}</td>
-                      <td className="px-5 py-3">{item.jenis_kegiatan}</td>
-                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(item.jml_pelaksanaan ?? 0)}</td>
-                      <td className="px-5 py-3">{item.keterangan ?? '-'}</td>
+                      <td className="px-5 py-3 font-medium text-slate-800">{group.bulan}</td>
+                      <td className="px-5 py-3">{group.tahun}</td>
+                      <td className="px-5 py-3 font-medium text-slate-800">{group.kota}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(group.jml_pelaksanaan ?? 0).toLocaleString()}</td>
+                      <td className="px-5 py-3 max-w-[260px]">
+                        <span
+                          className="block truncate text-slate-600"
+                          title={group.keterangan ?? '-'}
+                        >
+                          {group.keterangan ?? '-'}
+                        </span>
+                      </td>
                       <td className="px-5 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {renderDetailButton(`k6-${item.id}`)}
-                          {renderRowActions(item, 'k6-kegiatan-kbli', fetchK6, getKotaName(item))}
+                          {renderDetailButton(rowId)}
+                          <button onClick={() => openK6GroupEditPage(group)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                          </button>
+                          <button onClick={async () => {
+                            if (!window.confirm(`Apakah Anda yakin ingin menghapus data ${group.kota} untuk ${group.bulan} ${group.tahun}?`)) return;
+                            await Promise.all(group.items.map((item) => fetch(`http://127.0.0.1:8000/api/k6-kegiatan-kbli/${item.id}`, { method: 'DELETE' })));
+                            fetchK6();
+                          }} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.782L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          </button>
                         </div>
                       </td>
                     </tr>
-                    {isExpanded && renderDetailPanel(8, `Rincian Data ${getActiveTitle()}: ${getKotaName(item)} (${item.bulan} ${item.tahun})`, k6Fields)}
+                    {isExpanded && renderDetailPanelK6(6, `Rincian Data ${getActiveTitle()}: ${group.kota} (${group.bulan} ${group.tahun})`, group)}
                   </React.Fragment>
                 );
               })}
-              {filteredDataK6.length === 0 && (
-                <tr>
-                  <td colSpan="8" className="px-5 py-8 text-center text-slate-500">Belum ada data untuk {getActiveTitle()}.</td>
-                </tr>
+              {groupedK6.length === 0 && (
+                <tr><td colSpan="6" className="px-5 py-8 text-center text-slate-500">Belum ada data untuk {getActiveTitle()}.</td></tr>
               )}
             </tbody>
           </table>
@@ -3090,10 +3275,6 @@ const App = () => {
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1.5">Kabupaten/Kota</label>
             <select name="id_kota" value={formDataK6.id_kota} onChange={handleChangeK6} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">{renderKabKotaOptions()}</select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Jenis Kegiatan</label>
-            <input type="text" value={k6JenisKegiatanMap[activeMenu] ?? k6JenisKegiatanMap.K6} disabled className="w-full border border-slate-200 bg-slate-100 text-slate-600 rounded-md px-3 py-2 text-sm" />
           </div>
         </section>
 
