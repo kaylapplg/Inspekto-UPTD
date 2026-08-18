@@ -175,6 +175,60 @@ const k4FieldGroups = [
   },
 ];
 
+const k5JabatanOptions = ['Pertama', 'Muda', 'Madya'];
+const k5NumberFields = [
+  ['jml_pengawas', 'Jumlah'],
+  ['keg_pertama', 'Pertama'],
+  ['keg_berkala', 'Berkala'],
+  ['keg_ulang', 'Ulang'],
+  ['keg_khusus', 'Khusus'],
+  ['uji_norma_kerja', 'Norma Kerja'],
+  ['uji_norma_k3', 'Norma K3'],
+  ['hukum_nota_1', 'NP. I'],
+  ['hukum_nota_2', 'NP. II'],
+  ['hukum_lk', 'LK'],
+];
+
+const k5FieldGroups = [
+  {
+    title: 'Kegiatan Pemeriksaan',
+    color: 'sky',
+    fields: [
+      ['keg_pertama', 'Pertama'],
+      ['keg_berkala', 'Berkala'],
+      ['keg_ulang', 'Ulang'],
+      ['keg_khusus', 'Khusus'],
+    ],
+  },
+  {
+    title: 'Kegiatan Pengujian',
+    color: 'amber',
+    fields: [
+      ['uji_norma_kerja', 'Norma Kerja'],
+      ['uji_norma_k3', 'Norma K3'],
+    ],
+  },
+  {
+    title: 'Pembinaan/Penegakan Hukum',
+    color: 'green',
+    fields: [
+      ['hukum_nota_1', 'NP. I'],
+      ['hukum_nota_2', 'NP. II'],
+      ['hukum_lk', 'LK'],
+    ],
+  },
+];
+
+const createK5JabatanValues = () => k5NumberFields.reduce((values, [key]) => ({
+  ...values,
+  [key]: 0,
+}), {});
+
+const createK5JabatanData = () => k5JabatanOptions.reduce((values, jabatan) => ({
+  ...values,
+  [jabatan]: createK5JabatanValues(),
+}), {});
+
 
 const App = () => {
   const { auth } = usePage().props;
@@ -289,17 +343,7 @@ const App = () => {
   const [formDataK5, setFormDataK5] = useState({
     bulan: 'Agustus',
     tahun: 2026,
-    jabatan_pengawas: 'Pertama',
-    jml_pengawas: 0,
-    keg_pertama: 0,
-    keg_berkala: 0,
-    keg_ulang: 0,
-    keg_khusus: 0,
-    uji_norma_kerja: 0,
-    uji_norma_k3: 0,
-    hukum_nota_1: 0,
-    hukum_nota_2: 0,
-    hukum_lk: 0,
+    jabatan: createK5JabatanData(),
   });
 
   const [formDataK6, setFormDataK6] = useState({
@@ -773,6 +817,45 @@ const App = () => {
     setActiveMenu('EDIT');
   };
 
+  const openK5GroupEditPage = (group) => {
+    if (activeMenu !== 'EDIT') {
+      setLastReportMenu(activeMenu);
+    }
+
+    setEditData({
+      type: 'k5-group',
+      api: 'k5-pemeriksaan',
+      name: `${group.bulan} ${group.tahun}`,
+      groupItems: Object.values(group.jabatan).filter(Boolean),
+    });
+
+    setEditForm({
+      bulan: group.bulan ?? '',
+      tahun: group.tahun ?? '',
+      jabatan: k5JabatanOptions.reduce((values, jabatan) => ({
+        ...values,
+        [jabatan]: k5NumberFields.reduce((values, [field]) => ({
+          ...values,
+          [field]: Number(group.jabatan[jabatan]?.[field] ?? 0),
+        }), createK5JabatanValues()),
+      }), {}),
+    });
+    setActiveMenu('EDIT');
+  };
+
+  const handleEditK5JabatanChange = (jabatan, field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      jabatan: {
+        ...prev.jabatan,
+        [jabatan]: {
+          ...prev.jabatan?.[jabatan],
+          [field]: numericValue(value),
+        },
+      },
+    }));
+  };
+
   const handleEditChange = (event) => {
     const { name, value, type } = event.target;
     setEditForm((prev) => ({
@@ -785,6 +868,40 @@ const App = () => {
     event.preventDefault();
 
     if (!editData) return;
+
+    if (editData.type === 'k5-group') {
+      try {
+        const responses = await Promise.all(editData.groupItems.map((item) => {
+          const jabatan = item.jabatan_pengawas;
+          const values = editForm.jabatan?.[jabatan] ?? {};
+          return fetch(`http://127.0.0.1:8000/api/k5-pemeriksaan/${item.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              bulan: editForm.bulan,
+              tahun: editForm.tahun,
+              jabatan_pengawas: jabatan,
+              ...values,
+            }),
+          });
+        }));
+
+        if (responses.some((response) => !response.ok)) {
+          alert('Gagal menyimpan perubahan data K5');
+          return;
+        }
+
+        alert('Perubahan data K5 berhasil disimpan');
+        fetchK5();
+        setEditData(null);
+        setEditForm({});
+        setActiveMenu(lastReportMenu || 'K5');
+      } catch (error) {
+        console.error(error);
+        alert('Terjadi kesalahan saat menyimpan perubahan data K5');
+      }
+      return;
+    }
 
     const response = await fetch(`http://127.0.0.1:8000/api/${editData.api}/${editData.id}`, {
       method: 'PUT',
@@ -1373,6 +1490,78 @@ const App = () => {
       );
     }
 
+
+    if (editData.type === 'k5-group') {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
+          <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <h3 className="font-semibold text-slate-800">Edit Data</h3>
+            <p className="text-xs text-slate-500 mt-1">Pengawas Ketenagakerjaan &mdash; {editForm.bulan} {editForm.tahun}</p>
+          </div>
+          <form className="p-6 space-y-8" onSubmit={saveEdit}>
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {renderEditMonthSelect()}
+                {renderEditTextInput('tahun', 'Tahun')}
+              </div>
+            </section>
+
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">2. Data Pengawas Ketenagakerjaan</h4>
+              <div className="space-y-6">
+                {k5JabatanOptions.map((jabatan) => (
+                  <div key={jabatan} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <p className="font-semibold text-[#071A2F] mb-3 text-sm">Pengawas {jabatan}</p>
+                    <div className="space-y-5">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1.5">Jumlah</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editForm.jabatan?.[jabatan]?.jml_pengawas ?? 0}
+                          onChange={(e) => handleEditK5JabatanChange(jabatan, 'jml_pengawas', e.target.value)}
+                          className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                        />
+                      </div>
+
+                      {k5FieldGroups.map((group) => {
+                        const colors = k3ColorClasses[group.color];
+                        return (
+                          <div key={`${jabatan}-${group.title}`} className={`border rounded-lg p-4 ${colors.box}`}>
+                            <h6 className={`text-xs font-bold uppercase mb-3 flex items-center gap-2 ${colors.text}`}>
+                              <div className={`w-2 h-2 rounded-full ${colors.dot}`}></div>
+                              {group.title}
+                            </h6>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                              {group.fields.map(([key, label]) => (
+                                <div key={`${jabatan}-${key}`}>
+                                  <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={editForm.jabatan?.[jabatan]?.[key] ?? 0}
+                                    onChange={(e) => handleEditK5JabatanChange(jabatan, key, e.target.value)}
+                                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {renderEditActions('Simpan Perubahan')}
+          </form>
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -1677,7 +1866,7 @@ const App = () => {
                     <td className="px-5 py-3">{item.tahun}</td>
                     <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(item.jml_perusahaan ?? 0).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-center text-slate-700">{totalTK.toLocaleString()}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalTK.toLocaleString()}</td>
                     <td className="px-5 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -2004,7 +2193,7 @@ const App = () => {
                       <td className="px-5 py-3 font-medium text-slate-800">{group.bulan}</td>
                       <td className="px-5 py-3">{group.tahun}</td>
                       <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalPengawasUmum.toLocaleString()}</td>
-                      <td className="px-5 py-3 text-center font-semibold text-purple-600">{totalPpns.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalPpns.toLocaleString()}</td>
                       <td className="px-5 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {renderDetailButton(`k1-${group.key}`)}
@@ -2188,7 +2377,7 @@ const App = () => {
                     <td className="px-5 py-3">{item.tahun}</td>
                     <td className="px-5 py-3 font-medium text-slate-800">{getKotaName(item)}</td>
                     <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{Number(item.jml_perusahaan_bpjs ?? 0).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-center font-semibold text-purple-600">{totalTkBpjs.toLocaleString()}</td>
+                    <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalTkBpjs.toLocaleString()}</td>
                     <td className="px-5 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         {renderDetailButton(`k4-${item.id}`)}
@@ -2244,87 +2433,161 @@ const App = () => {
     </div>
   );
 
-  const renderViewDataK5 = () => (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
-      <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
-        <div>
-          <h3 className="font-semibold text-slate-800">Tabel Rekapitulasi Data K5</h3>
-          <p className="text-xs text-slate-500 mt-1">Pemeriksaan / Uji Norma</p>
-        </div>
-        <button className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 active:scale-[0.98]">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          Export Excel
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-[11px] text-slate-500 uppercase tracking-wide bg-slate-50 border-b-2 border-slate-100 font-semibold">
-            <tr>
-              <th className="px-4 py-4">Bulan</th>
-              <th className="px-4 py-4">Tahun</th>
-              <th className="px-4 py-4">Jabatan Pengawas</th>
-              <th className="px-4 py-4 text-center">Jml Pengawas</th>
-              <th className="px-4 py-4 text-center">Keg Pertama</th>
-              <th className="px-4 py-4 text-center">Keg Berkala</th>
-              <th className="px-4 py-4 text-center">Keg Ulang</th>
-              <th className="px-4 py-4 text-center">Keg Khusus</th>
-              <th className="px-4 py-4 text-center">Uji Norma Kerja</th>
-              <th className="px-4 py-4 text-center">Uji Norma K3</th>
-              <th className="px-4 py-4 text-center">Hukum Nota 1</th>
-              <th className="px-4 py-4 text-center">Hukum Nota 2</th>
-              <th className="px-4 py-4 text-center">Hukum LK</th>
-              <th className="px-4 py-4 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dataK5.map((item) => {
-              const isExpanded = expandedRow === `k5-${item.id}`;
-              const k5Fields = [
-                ['jml_pengawas', 'Jml Pengawas'],
-                ['keg_pertama', 'Kegiatan Pertama'],
-                ['keg_berkala', 'Kegiatan Berkala'],
-                ['keg_ulang', 'Kegiatan Ulang'],
-                ['keg_khusus', 'Kegiatan Khusus'],
-                ['uji_norma_kerja', 'Uji Norma Kerja'],
-                ['uji_norma_k3', 'Uji Norma K3'],
-                ['hukum_nota_1', 'Hukum Nota I'],
-                ['hukum_nota_2', 'Hukum Nota II'],
-                ['hukum_lk', 'Hukum LK'],
-              ].map(([key, label]) => [label, Number(item[key] ?? 0).toLocaleString()]);
-              k5Fields.unshift(['Jabatan Pengawas', item.jabatan_pengawas]);
+  const renderViewDataK5 = () => {
+    // Gabungkan data K5 berdasarkan Bulan + Tahun, sehingga Pertama, Muda,
+    // dan Madya tampil dalam satu baris rekap.
+    const groupedK5 = dataK5.reduce((groups, item) => {
+      const key = `${item.bulan}-${item.tahun}`;
+      if (!groups[key]) {
+        groups[key] = {
+          key,
+          bulan: item.bulan,
+          tahun: item.tahun,
+          jabatan: {},
+        };
+      }
+      groups[key].jabatan[item.jabatan_pengawas] = item;
+      return groups;
+    }, {});
 
-              return (
-                <React.Fragment key={item.id}>
-                  <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
-                    <td className="px-4 py-3">{item.bulan}</td>
-                    <td className="px-4 py-3">{item.tahun}</td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{item.jabatan_pengawas}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.jml_pengawas ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.keg_pertama ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.keg_berkala ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.keg_ulang ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.keg_khusus ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.uji_norma_kerja ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.uji_norma_k3 ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.hukum_nota_1 ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.hukum_nota_2 ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">{Number(item.hukum_lk ?? 0)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {renderDetailButton(`k5-${item.id}`)}
-                        {renderRowActions(item, 'k5-pemeriksaan', fetchK5, item.jabatan_pengawas)}
-                      </div>
-                    </td>
-                  </tr>
-                  {isExpanded && renderDetailPanel(14, `Rincian Data K5: ${item.jabatan_pengawas} (${item.bulan} ${item.tahun})`, k5Fields)}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+    const groupedK5List = Object.values(groupedK5);
+
+    const sumK5Field = (group, field) => k5JabatanOptions.reduce(
+      (total, jabatan) => total + Number(group.jabatan[jabatan]?.[field] ?? 0),
+      0
+    );
+
+    const deleteK5Group = async (group) => {
+      const name = `${group.bulan} ${group.tahun}`;
+      const items = Object.values(group.jabatan).filter(Boolean);
+      if (!items.length) return;
+
+      if (window.confirm(`Apakah Anda yakin ingin menghapus data K5 ${name}?`)) {
+        const responses = await Promise.all(items.map((item) => (
+          fetch(`http://127.0.0.1:8000/api/k5-pemeriksaan/${item.id}`, { method: 'DELETE' })
+        )));
+        if (responses.every((response) => response.ok)) fetchK5();
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
+          <div>
+            <h3 className="font-semibold text-slate-800">Tabel Rekapitulasi Data K5</h3>
+            <p className="text-xs text-slate-500 mt-1">Rekap per Bulan &mdash; Gabungan Pengawas Pertama, Muda &amp; Madya</p>
+          </div>
+          <button className="px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 active:scale-[0.98]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Export Excel
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-[11px] text-slate-500 uppercase tracking-wide bg-slate-50 border-b-2 border-slate-100 font-semibold">
+              <tr>
+                <th className="px-5 py-4">Bulan</th>
+                <th className="px-5 py-4">Tahun</th>
+                <th className="px-5 py-4 text-center">Total Pengawas</th>
+                <th className="px-5 py-4 text-center">Total Kegiatan Pemeriksaan</th>
+                <th className="px-5 py-4 text-center">Uji Norma Kerja</th>
+                <th className="px-5 py-4 text-center">Uji Norma K3</th>
+                <th className="px-5 py-4 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupedK5List.map((group) => {
+                const rowId = `k5-${group.key}`;
+                const isExpanded = expandedRow === rowId;
+                const totalPengawas = sumK5Field(group, 'jml_pengawas');
+                const totalKegiatanPemeriksaan =
+                  sumK5Field(group, 'keg_pertama') +
+                  sumK5Field(group, 'keg_berkala') +
+                  sumK5Field(group, 'keg_ulang') +
+                  sumK5Field(group, 'keg_khusus');
+                const totalNormaKerja = sumK5Field(group, 'uji_norma_kerja');
+                const totalNormaK3 = sumK5Field(group, 'uji_norma_k3');
+
+                return (
+                  <React.Fragment key={rowId}>
+                    <tr className={`border-b transition-colors ${isExpanded ? 'bg-[#071A2F]/5' : 'bg-white hover:bg-slate-50'}`}>
+                      <td className="px-5 py-3 font-medium text-slate-800">{group.bulan}</td>
+                      <td className="px-5 py-3">{group.tahun}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalPengawas.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalKegiatanPemeriksaan.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalNormaKerja.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center font-semibold text-[#071A2F]">{totalNormaK3.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {renderDetailButton(rowId)}
+                          <button onClick={() => openK5GroupEditPage(group)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                          </button>
+                          <button onClick={() => deleteK5Group(group)} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan="7" className="p-0 border-b border-slate-300">
+                          <div className="bg-slate-100 p-6 shadow-inner">
+                            <h4 className="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-300">
+                              Rincian Data Pengawas &mdash; {group.bulan} {group.tahun}
+                            </h4>
+                            <div className="overflow-x-auto bg-white rounded-lg border border-slate-200 shadow-sm">
+                              <table className="w-full text-sm text-left">
+                                <thead className="text-[11px] text-slate-500 uppercase tracking-wide bg-slate-50 border-b border-slate-200 font-semibold">
+                                  <tr>
+                                    <th className="px-4 py-3 sticky left-0 bg-slate-50">Rincian</th>
+                                    {k5JabatanOptions.map((jabatan) => (
+                                      <th key={jabatan} className="px-4 py-3 text-center min-w-[170px]">Pengawas {jabatan}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {[
+                                    ['jml_pengawas', 'Jumlah'],
+                                    ['keg_pertama', 'Pemeriksaan - Pertama'],
+                                    ['keg_berkala', 'Pemeriksaan - Berkala'],
+                                    ['keg_ulang', 'Pemeriksaan - Ulang'],
+                                    ['keg_khusus', 'Pemeriksaan - Khusus'],
+                                    ['uji_norma_kerja', 'Pengujian - Norma Kerja'],
+                                    ['uji_norma_k3', 'Pengujian - Norma K3'],
+                                    ['hukum_nota_1', 'Pembinaan/Penegakan Hukum - NP. I'],
+                                    ['hukum_nota_2', 'Pembinaan/Penegakan Hukum - NP. II'],
+                                    ['hukum_lk', 'Pembinaan/Penegakan Hukum - LK'],
+                                  ].map(([field, label], idx) => (
+                                    <tr key={field} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
+                                      <td className="px-4 py-2.5 sticky left-0 font-medium text-slate-600 bg-inherit">{label}</td>
+                                      {k5JabatanOptions.map((jabatan) => {
+                                        const item = group.jabatan[jabatan];
+                                        return (
+                                          <td key={jabatan} className="px-4 py-2.5 text-center font-semibold text-slate-800">
+                                            {item ? Number(item[field] ?? 0).toLocaleString() : '-'}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderViewDataK6 = () => {
     const filteredDataK6 = dataK6.filter((item) => (
@@ -2676,14 +2939,15 @@ const App = () => {
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
       <div className="p-5 border-b border-slate-100 bg-slate-50/60">
         <h3 className="font-semibold text-slate-800">Form Input Data K5 Baru</h3>
-        <p className="text-xs text-slate-500 mt-1">Pemeriksaan & Uji Norma</p>
+        <p className="text-xs text-slate-500 mt-1">Pastikan data yang diinput sesuai dengan format berkas laporan / excel uptd.xlsx</p>
       </div>
       <form className="p-6 space-y-8" onSubmit={handleSubmitK5}>
         <section>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
-              <select name="bulan" value={formDataK5.bulan} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
+              <select name="bulan" value={formDataK5.bulan} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
                 <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
                 <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
@@ -2692,29 +2956,57 @@ const App = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
-              <input name="tahun" type="number" value={formDataK5.tahun} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Jabatan Pengawas</label>
-              <select name="jabatan_pengawas" value={formDataK5.jabatan_pengawas} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
-                <option value="Pertama">Pertama</option>
-                <option value="Muda">Muda</option>
-                <option value="Madya">Madya</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Jml Pengawas</label>
-              <input name="jml_pengawas" type="number" value={formDataK5.jml_pengawas} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+              <input name="tahun" type="number" value={formDataK5.tahun} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
             </div>
           </div>
         </section>
 
         <section>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {['keg_pertama','keg_berkala','keg_ulang','keg_khusus','uji_norma_kerja','uji_norma_k3','hukum_nota_1','hukum_nota_2','hukum_lk'].map((key) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{key.replace(/_/g, ' ')}</label>
-                <input name={key} type="number" value={formDataK5[key]} onChange={handleChangeK5} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">2. Data Pengawas Ketenagakerjaan</h4>
+          <div className="space-y-6">
+            {k5JabatanOptions.map((jabatan) => (
+              <div key={jabatan} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <p className="font-semibold text-[#071A2F] mb-3 text-sm">Pengawas {jabatan}</p>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">Jumlah</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formDataK5.jabatan[jabatan].jml_pengawas}
+                      onChange={(e) => handleChangeK5Jabatan(jabatan, 'jml_pengawas', e.target.value)}
+                      placeholder="0"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                    />
+                  </div>
+
+                  {k5FieldGroups.map((group) => {
+                    const colors = k3ColorClasses[group.color];
+                    return (
+                      <div key={`${jabatan}-${group.title}`} className={`border rounded-lg p-4 ${colors.box}`}>
+                        <h6 className={`text-xs font-bold uppercase mb-3 flex items-center gap-2 ${colors.text}`}>
+                          <div className={`w-2 h-2 rounded-full ${colors.dot}`}></div>
+                          {group.title}
+                        </h6>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {group.fields.map(([key, label]) => (
+                            <div key={`${jabatan}-${key}`}>
+                              <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formDataK5.jabatan[jabatan][key]}
+                                onChange={(e) => handleChangeK5Jabatan(jabatan, key, e.target.value)}
+                                placeholder="0"
+                                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
@@ -3353,7 +3645,20 @@ const App = () => {
     const { name, value } = e.target;
     setFormDataK5((prev) => ({
       ...prev,
-      [name]: ['tahun', 'jml_pengawas', 'keg_pertama', 'keg_berkala', 'keg_ulang', 'keg_khusus', 'uji_norma_kerja', 'uji_norma_k3', 'hukum_nota_1', 'hukum_nota_2', 'hukum_lk'].includes(name) ? numericValue(value) : value,
+      [name]: name === 'tahun' ? numericValue(value) : value,
+    }));
+  };
+
+  const handleChangeK5Jabatan = (jabatan, field, value) => {
+    setFormDataK5((prev) => ({
+      ...prev,
+      jabatan: {
+        ...prev.jabatan,
+        [jabatan]: {
+          ...prev.jabatan[jabatan],
+          [field]: numericValue(value),
+        },
+      },
     }));
   };
 
@@ -3461,16 +3766,25 @@ const App = () => {
 
   const handleSubmitK5 = async (e) => {
     e.preventDefault();
+    const payload = k5JabatanOptions.map((jabatan) => ({
+      bulan: formDataK5.bulan,
+      tahun: formDataK5.tahun,
+      jabatan_pengawas: jabatan,
+      ...formDataK5.jabatan[jabatan],
+    }));
+
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/k5-pemeriksaan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(formDataK5),
-      });
-      const result = await response.json();
-      if (!response.ok) {
+      const responses = await Promise.all(payload.map((record) => (
+        fetch('http://127.0.0.1:8000/api/k5-pemeriksaan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(record),
+        })
+      )));
+      const results = await Promise.all(responses.map((response) => response.json()));
+      if (responses.some((response) => !response.ok)) {
         alert('Gagal menyimpan data K5');
-        console.error(result);
+        console.error(results);
         return;
       }
       alert('Data K5 berhasil disimpan');
