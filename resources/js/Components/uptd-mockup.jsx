@@ -817,6 +817,43 @@ const App = () => {
     setActiveMenu('EDIT');
   };
 
+  const openK1GroupEditPage = (group) => {
+    if (activeMenu !== 'EDIT') setLastReportMenu(activeMenu);
+
+    setEditData({
+      type: 'k1-group',
+      api: 'k1-pengawas',
+      name: `${group.bulan} ${group.tahun}`,
+      groupItems: Object.values(group.jabatan).filter(Boolean),
+    });
+
+    setEditForm({
+      bulan: group.bulan ?? '',
+      tahun: group.tahun ?? '',
+      jabatan: k1JabatanOptions.reduce((values, jabatan) => ({
+        ...values,
+        [jabatan]: k1NumberFields.reduce((fields, field) => ({
+          ...fields,
+          [field.key]: Number(group.jabatan[jabatan]?.[field.key] ?? 0),
+        }), createK1JabatanValues()),
+      }), {}),
+    });
+    setActiveMenu('EDIT');
+  };
+
+  const handleEditK1JabatanChange = (jabatan, field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      jabatan: {
+        ...prev.jabatan,
+        [jabatan]: {
+          ...prev.jabatan?.[jabatan],
+          [field]: numericValue(value),
+        },
+      },
+    }));
+  };
+
   const openK5GroupEditPage = (group) => {
     if (activeMenu !== 'EDIT') {
       setLastReportMenu(activeMenu);
@@ -868,6 +905,40 @@ const App = () => {
     event.preventDefault();
 
     if (!editData) return;
+
+    if (editData.type === 'k1-group') {
+      try {
+        const responses = await Promise.all(editData.groupItems.map((item) => {
+          const jabatan = item.jabatan;
+          const values = editForm.jabatan?.[jabatan] ?? {};
+          return fetch(`http://127.0.0.1:8000/api/k1-pengawas/${item.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              bulan: editForm.bulan,
+              tahun: editForm.tahun,
+              jabatan,
+              ...values,
+            }),
+          });
+        }));
+
+        if (responses.some((response) => !response.ok)) {
+          alert('Gagal menyimpan perubahan data K1');
+          return;
+        }
+
+        alert('Perubahan data K1 berhasil disimpan');
+        fetchK1();
+        setEditData(null);
+        setEditForm({});
+        setActiveMenu(lastReportMenu || 'K1');
+      } catch (error) {
+        console.error(error);
+        alert('Terjadi kesalahan saat menyimpan perubahan data K1');
+      }
+      return;
+    }
 
     if (editData.type === 'k5-group') {
       try {
@@ -1275,62 +1346,46 @@ const App = () => {
   const renderStructuredEditPage = () => {
     if (!editData) return null;
 
-    if (editData.api === 'k1-pengawas') {
-      const jabatan = editForm.jabatan || 'Pertama';
-
+    if (editData.type === 'k1-group') {
       return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
           <div className="p-5 border-b border-slate-100 bg-slate-50/60">
-            <h3 className="font-semibold text-slate-800">Form Edit Data K1</h3>
-            <p className="text-xs text-slate-500 mt-1">Pengawas & Ketenagakerjaan</p>
+            <h3 className="font-semibold text-slate-800">Edit Data K1</h3>
+            <p className="text-xs text-slate-500 mt-1">Pengawas Ketenagakerjaan &mdash; {editForm.bulan} {editForm.tahun}</p>
           </div>
-          <form className="p-6 space-y-6" onSubmit={saveEdit}>
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {renderEditMonthSelect()}
-              {renderEditTextInput('tahun', 'Tahun')}
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">Jabatan</label>
-                <select name="jabatan" value={editForm.jabatan ?? ''} onChange={handleEditChange} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                  {k1JabatanOptions.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
+
+          <form className="p-6 space-y-8" onSubmit={saveEdit}>
+            <section>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">1. Informasi Umum</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {renderEditMonthSelect()}
+                {renderEditTextInput('tahun', 'Tahun')}
               </div>
             </section>
 
             <section>
-              <div className="overflow-x-auto w-full pb-4">
-                <div className="border border-slate-200 rounded-lg">
-                  <table className="min-w-[1180px] w-full text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                      <tr>
-                        <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left font-semibold border-r border-slate-200">Jabatan</th>
-                        {k1NumberFields.map((field) => (
-                          <th key={field.key} className="px-3 py-3 text-center font-semibold whitespace-nowrap">{field.label}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      <tr className="hover:bg-slate-50">
-                        <td className="sticky left-0 z-10 bg-white px-4 py-3 font-semibold text-slate-800 border-r border-slate-200">{jabatan}</td>
-                        {k1NumberFields.map((field) => (
-                          <td key={`${jabatan}-${field.key}`} className="px-2 py-3">
-                            <input
-                              name={field.key}
-                              type="number"
-                              min="0"
-                              value={editForm[field.key] ?? 0}
-                              onChange={handleEditChange}
-                              className="w-20 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+              <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">2. Data Pengawas Ketenagakerjaan</h4>
+              <div className="space-y-6">
+                {k1JabatanOptions.map((jabatan) => (
+                  <div key={jabatan} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <p className="font-semibold text-[#071A2F] mb-3 text-sm">Pengawas {jabatan}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                      {k1NumberFields.map((field) => (
+                        <div key={`${jabatan}-${field.key}`}>
+                          <label className="block text-xs font-medium text-slate-500 mb-1.5">{field.label}</label>
+                          <input type="number" min="0"
+                            value={editForm.jabatan?.[jabatan]?.[field.key] ?? 0}
+                            onChange={(e) => handleEditK1JabatanChange(jabatan, field.key, e.target.value)}
+                            className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-center transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
-            {renderEditActions()}
+            {renderEditActions('Simpan Perubahan')}
           </form>
         </div>
       );
@@ -2197,6 +2252,9 @@ const App = () => {
                       <td className="px-5 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {renderDetailButton(`k1-${group.key}`)}
+                          <button onClick={() => openK1GroupEditPage(group)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                          </button>
                           <button onClick={() => deleteK1Group(group)} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition shadow-sm" title="Hapus Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                         </div>
                       </td>
@@ -2217,14 +2275,7 @@ const App = () => {
                                       const jabatanItem = group.jabatan[jabatan];
                                       return (
                                         <th key={jabatan} className="px-4 py-3 text-center min-w-[150px]">
-                                          <div className="flex items-center justify-center gap-2">
-                                            <span>{jabatan}</span>
-                                            {jabatanItem ? (
-                                              <button onClick={() => openEditPage(jabatanItem, 'k1-pengawas', fetchK1, `${jabatan} - ${group.bulan} ${group.tahun}`)} className="p-1.5 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition shadow-sm" title="Edit Data"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                                            ) : (
-                                              <span className="text-slate-300 normal-case">Tidak ada data</span>
-                                            )}
-                                          </div>
+                                          <span>{jabatan}</span>
                                         </th>
                                       );
                                     })}
@@ -2765,55 +2816,51 @@ const App = () => {
         <h3 className="font-semibold text-slate-800">Form Input Data K1 Baru</h3>
         <p className="text-xs text-slate-500 mt-1">Pengawas & Ketenagakerjaan</p>
       </div>
-      <form className="p-6 space-y-6" onSubmit={handleSubmitK1}>
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
-            <select name="bulan" value={formDataK1.bulan} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow">
-              <option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option>
-              <option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option>
-              <option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option>
-              <option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
-            <input name="tahun" type="number" value={formDataK1.tahun} onChange={handleChangeK1} className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow" />
+
+      <form className="p-6 space-y-8" onSubmit={handleSubmitK1}>
+        <section>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">
+            1. Informasi Umum
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Bulan</label>
+              <select name="bulan" value={formDataK1.bulan} onChange={handleChangeK1}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].map((bulan) => (
+                  <option key={bulan} value={bulan}>{bulan}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Tahun</label>
+              <input name="tahun" type="number" min="2000" value={formDataK1.tahun} onChange={handleChangeK1}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+            </div>
           </div>
         </section>
 
         <section>
-          <div className="overflow-x-auto w-full pb-4">
-            <div className="border border-slate-200 rounded-lg">
-              <table className="min-w-[1180px] w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left font-semibold border-r border-slate-200">Jabatan</th>
-                    {k1NumberFields.map((field) => (
-                      <th key={field.key} className="px-3 py-3 text-center font-semibold whitespace-nowrap">{field.label}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {k1JabatanOptions.map((jabatan) => (
-                    <tr key={jabatan} className="hover:bg-slate-50">
-                      <td className="sticky left-0 z-10 bg-white px-4 py-3 font-semibold text-slate-800 border-r border-slate-200">{jabatan}</td>
-                      {k1NumberFields.map((field) => (
-                        <td key={`${jabatan}-${field.key}`} className="px-2 py-3">
-                          <input
-                            type="number"
-                            min="0"
-                            value={formDataK1.jabatan[jabatan][field.key]}
-                            onChange={(e) => handleChangeK1Jabatan(jabatan, field.key, e.target.value)}
-                            className="w-20 border border-slate-300 rounded-md px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                          />
-                        </td>
-                      ))}
-                    </tr>
+          <h4 className="text-sm font-bold text-[#071A2F] mb-4 pb-2 border-b-2 border-yellow-400 uppercase tracking-wide">
+            2. Data Pengawas Ketenagakerjaan
+          </h4>
+          <div className="space-y-6">
+            {k1JabatanOptions.map((jabatan) => (
+              <div key={jabatan} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <p className="font-semibold text-[#071A2F] mb-3 text-sm">Pengawas {jabatan}</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {k1NumberFields.map((field) => (
+                    <div key={`${jabatan}-${field.key}`}>
+                      <label className="block text-xs font-medium text-slate-500 mb-1.5">{field.label}</label>
+                      <input type="number" min="0"
+                        value={formDataK1.jabatan[jabatan][field.key]}
+                        onChange={(e) => handleChangeK1Jabatan(jabatan, field.key, e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-center transition-shadow focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -2824,7 +2871,6 @@ const App = () => {
       </form>
     </div>
   );
-
   const renderInputFormK3 = () => (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70">
       <div className="p-5 border-b border-slate-100 bg-slate-50/60">
