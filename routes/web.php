@@ -10,8 +10,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Tujuan utama setelah login sukses: menu K1 Pengawas
-Route::get('/k1-pengawas', function () {
+// Tujuan utama setelah login sukses: menu Inspekto UPTD
+Route::get('/Inspekto-UPTD', function () {
     return Inertia::render('uptd-mockup');
 })->middleware('auth')->name('dashboard');
 
