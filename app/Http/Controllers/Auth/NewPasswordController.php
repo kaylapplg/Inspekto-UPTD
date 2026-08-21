@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -21,10 +21,50 @@ class NewPasswordController extends Controller
      */
     public function create(Request $request): Response
     {
+        $email = $request->email;
+
         return Inertia::render('Auth/ResetPassword', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
+            'email' => $email,
+            'status' => session('status'),
+            'otpVerified' => session('password_reset_verified_email') === $email,
         ]);
+    }
+
+    /**
+     * Handle an incoming OTP verification request.
+     *
+     * @throws ValidationException
+     */
+    public function verifyOtp(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => ['required', 'digits:6'],
+        ]);
+
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (! $record || ! Hash::check($request->otp, $record->token)) {
+            throw ValidationException::withMessages([
+                'otp' => ['Kode OTP tidak valid.'],
+            ]);
+        }
+
+        if (now()->subMinutes(config('auth.passwords.users.expire'))->greaterThan($record->created_at)) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+            throw ValidationException::withMessages([
+                'otp' => ['Kode OTP sudah kedaluwarsa. Silakan minta kode baru.'],
+            ]);
+        }
+
+        $request->session()->put('password_reset_verified_email', $request->email);
+
+        return redirect()
+            ->route('password.reset', ['email' => $request->email])
+            ->with('status', 'Kode OTP berhasil diverifikasi. Silakan buat password baru.');
     }
 
     /**
@@ -35,35 +75,34 @@ class NewPasswordController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'token' => 'required',
             'email' => 'required|email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                event(new PasswordReset($user));
-            }
-        );
-
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        if ($status == Password::PASSWORD_RESET) {
-            return redirect()->route('login')->with('status', __($status));
+        if ($request->session()->get('password_reset_verified_email') !== $request->email) {
+            throw ValidationException::withMessages([
+                'otp' => ['Silakan verifikasi kode OTP terlebih dahulu.'],
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
+        $user = config('auth.providers.users.model')::where('email', $request->email)->first();
+
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'email' => ['Email tidak ditemukan.'],
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($request->password),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        $request->session()->forget('password_reset_verified_email');
+
+        event(new PasswordReset($user));
+
+        return redirect()->route('login')->with('status', 'Password berhasil direset. Silakan login dengan password baru.');
     }
 }

@@ -280,6 +280,11 @@ const App = () => {
   const [profileName, setProfileName] = useState(() => localStorage.getItem('profile_name') || user.name || 'Admin Pengawas');
   const [profileNameInput, setProfileNameInput] = useState(() => localStorage.getItem('profile_name') || user.name || 'Admin Pengawas');
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
+  const [profileEmail, setProfileEmail] = useState(() => user.email || 'admin@uptd.local');
+  const [profileEmailInput, setProfileEmailInput] = useState(() => user.email || 'admin@uptd.local');
+  const [isSavingProfileEmail, setIsSavingProfileEmail] = useState(false);
+  const [profileEmailError, setProfileEmailError] = useState('');
+  const [showEmailSuccessPopup, setShowEmailSuccessPopup] = useState(false);
   const userInitial = (profileName || 'A').trim().charAt(0).toUpperCase();
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -1313,6 +1318,40 @@ const App = () => {
     setIsEditingProfileName(false);
   };
 
+  const saveProfileEmail = (event) => {
+    event.preventDefault();
+
+    const nextEmail = profileEmailInput.trim().toLowerCase();
+
+    if (!nextEmail) {
+      setProfileEmailError('Email baru tidak boleh kosong.');
+      return;
+    }
+
+    setIsSavingProfileEmail(true);
+    setProfileEmailError('');
+
+    router.patch('/profile/email', {
+      email: nextEmail,
+    }, {
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: () => {
+        setProfileEmail(nextEmail);
+        setProfileEmailInput(nextEmail);
+        setShowEmailSuccessPopup(true);
+        window.setTimeout(() => setShowEmailSuccessPopup(false), 2500);
+      },
+      onError: (errors) => {
+        const message = errors?.email || errors?.message || 'Email gagal disimpan. Periksa kembali email baru Anda.';
+        setProfileEmailError(Array.isArray(message) ? message[0] : message);
+      },
+      onFinish: () => {
+        setIsSavingProfileEmail(false);
+      },
+    });
+  };
+
   const handlePasswordChange = (event) => {
     const { name, value } = event.target;
     setPasswordForm((prev) => ({
@@ -2001,6 +2040,22 @@ const App = () => {
 
   const renderProfilePage = () => (
     <div className="space-y-6">
+      {showEmailSuccessPopup && (
+        <div className="fixed top-20 right-8 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-emerald-200 bg-white px-5 py-4 shadow-xl shadow-slate-900/10">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Email berhasil diubah</p>
+              <p className="mt-1 text-xs text-slate-500">Email baru sudah tersimpan di akun Anda.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/60">
           <h3 className="text-lg font-bold text-slate-800">Profil Saya</h3>
@@ -2077,10 +2132,44 @@ const App = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Email</label>
-                <div className="w-full border border-slate-200 bg-slate-50 text-slate-800 rounded-lg px-4 py-3 text-sm">
-                  {user.email || 'admin@uptd.local'}
-                </div>
+                <form onSubmit={saveProfileEmail}>
+                  <label htmlFor="profile-email" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
+                    Email Baru
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      id="profile-email"
+                      type="email"
+                      value={profileEmailInput}
+                      onChange={(event) => {
+                        setProfileEmailInput(event.target.value);
+                        setProfileEmailError('');
+                      }}
+                      required
+                      className="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm"
+                      placeholder="Masukkan email baru"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSavingProfileEmail}
+                      className={`px-4 py-2.5 bg-[#071A2F] text-white text-sm font-semibold rounded-lg transition-all shadow-sm whitespace-nowrap ${
+                        isSavingProfileEmail
+                          ? 'opacity-70 cursor-not-allowed'
+                          : 'hover:bg-[#0A2540] hover:shadow-md active:scale-[0.98]'
+                      }`}
+                    >
+                      {isSavingProfileEmail ? 'Menyimpan...' : 'Simpan Email Baru'}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Email saat ini: {profileEmail}
+                  </p>
+                  {profileEmailError && (
+                    <p className="mt-2 text-xs font-medium text-red-600">
+                      {profileEmailError}
+                    </p>
+                  )}
+                </form>
               </div>
             </div>
 
